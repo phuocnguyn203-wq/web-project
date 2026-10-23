@@ -57,7 +57,6 @@ export default function TeacherLecture({
     ready ? `/lectures/${id}/transcript` : null,
   );
   const [tab, setTab] = useState<Tab>("cards");
-  const [busy, setBusy] = useState(false);
 
   const pending = lec.data && !ready && lec.data.status !== "failed";
   useEffect(() => {
@@ -67,7 +66,12 @@ export default function TeacherLecture({
   }, [pending, lec.reload]);
 
   const l = lec.data;
-  const { setActiveClass } = useClasses();
+  const { classes, setActiveClass } = useClasses();
+  const [assigning, setAssigning] = useState(false);
+  const assignedNames = l?.class_ids
+    .map((cid) => classes?.find((c) => c.id === cid)?.name)
+    .filter(Boolean)
+    .join(", ");
   useEffect(() => {
     setActiveClass(l?.class_id);
     return () => setActiveClass(undefined);
@@ -97,7 +101,7 @@ export default function TeacherLecture({
             <p className="mt-1.5 text-sm text-ink-2">
               {l.published ? (
                 <span className="font-semibold text-green">
-                  Đã giao cho lớp
+                  Đã giao cho {assignedNames || `${l.class_ids.length} lớp`}
                 </span>
               ) : (
                 "Bản nháp — sinh viên chưa thấy bài này"
@@ -124,25 +128,29 @@ export default function TeacherLecture({
               <Trash2 className="size-4" /> Xoá
             </Button>
           )}
-          {ready && !l?.published && (
+          {ready && l && (
             <Button
-              variant="primary"
-              loading={busy}
-              onClick={async () => {
-                setBusy(true);
-                lec.setData(
-                  await api<Lecture>(`/lectures/${id}/publish`, {
-                    method: "POST",
-                  }),
-                );
-                setBusy(false);
-              }}
+              variant={l.published ? "ghost" : "primary"}
+              aria-expanded={assigning}
+              onClick={() => setAssigning((v) => !v)}
             >
-              <Send className="size-4" /> Giao cho lớp
+              <Send className="size-4" />{" "}
+              {l.published ? "Đổi lớp được giao" : "Giao cho lớp"}
             </Button>
           )}
         </div>
       </header>
+
+      {assigning && l && (
+        <AssignPanel
+          lecture={l}
+          onCancel={() => setAssigning(false)}
+          onSaved={(saved) => {
+            lec.setData(saved);
+            setAssigning(false);
+          }}
+        />
+      )}
 
       {l && !ready && (
         <div className="mt-8 rounded-lg border border-rule bg-white p-6">
@@ -230,6 +238,117 @@ export default function TeacherLecture({
   );
 }
 
+function AssignPanel({
+  lecture,
+  onSaved,
+  onCancel,
+}: {
+  lecture: Lecture;
+  onSaved: (l: Lecture) => void;
+  onCancel: () => void;
+}) {
+  const { classes, reload } = useClasses();
+  // first time: preselect the class it was uploaded to
+  const [picked, setPicked] = useState<number[]>(
+    lecture.published ? lecture.class_ids : [lecture.class_id],
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const toggle = (cid: number) =>
+    setPicked((p) =>
+      p.includes(cid) ? p.filter((x) => x !== cid) : [...p, cid],
+    );
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      onSaved(
+        await api<Lecture>(`/lectures/${lecture.id}/assignments`, {
+          method: "PUT",
+          json: { class_ids: picked },
+        }),
+      );
+      reload();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Không lưu được");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section
+      aria-labelledby="assign-title"
+      className="rise mt-4 rounded-lg border border-rule bg-white p-5"
+    >
+      <h2 id="assign-title" className="text-[15px] font-bold">
+        Giao bài này cho lớp nào?
+      </h2>
+      <p className="mt-1 text-sm text-ink-2">
+        Các lớp dùng chung một bộ thẻ và câu hỏi: sửa một lần, lớp nào cũng
+        thấy. Bỏ chọn một lớp để thu hồi bài khỏi lớp đó.
+      </p>
+      {classes ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {classes.map((c) => {
+            const on = picked.includes(c.id);
+            return (
+              <button
+                key={c.id}
+                type="button"
+                role="checkbox"
+                aria-checked={on}
+                onClick={() => toggle(c.id)}
+                className={cx(
+                  "press flex h-10 items-center gap-2 rounded-md border px-3.5 text-sm font-semibold",
+                  on
+                    ? "border-ink bg-ink text-white"
+                    : "border-rule bg-white text-ink-2 hover:border-ink-3",
+                )}
+              >
+                {c.name}
+                <span
+                  className={cx(
+                    "text-[12px] font-normal tabular-nums",
+                    on ? "text-white/70" : "text-ink-3",
+                  )}
+                >
+                  {c.student_count} SV
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <Skeleton className="mt-4 h-10" />
+      )}
+      {error && (
+        <div className="mt-4">
+          <ErrorNote>{error}</ErrorNote>
+        </div>
+      )}
+      <div className="mt-5 flex justify-end gap-2">
+        <Button variant="ghost" onClick={onCancel}>
+          Huỷ
+        </Button>
+        <Button
+          variant="primary"
+          loading={busy}
+          disabled={!picked.length && !lecture.published}
+          onClick={save}
+        >
+          {picked.length
+            ? `Giao cho ${picked.length} lớp`
+            : lecture.published
+              ? "Thu hồi khỏi mọi lớp"
+              : "Chọn ít nhất một lớp"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 function CardsEditor({
   lectureId,
   sourceType,
@@ -271,8 +390,8 @@ function CardsEditor({
         <p className="text-sm text-ink-2">
           {published ? (
             <>
-              <b className="text-green">Đã giao cho lớp.</b> Thẻ bạn sửa sẽ cập
-              nhật ngay cho sinh viên.
+              <b className="text-green">Đã giao.</b> Thẻ bạn sửa sẽ cập nhật
+              ngay cho sinh viên của mọi lớp được giao.
             </>
           ) : (
             <>

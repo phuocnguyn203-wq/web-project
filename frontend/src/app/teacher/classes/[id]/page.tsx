@@ -73,7 +73,7 @@ export default function ClassPage({ params }: { params: Promise<{ id: string }> 
 
       <div className="mt-6">
         {tab === "lectures" ? (
-          <LectureTable lectures={lectures.data} error={lectures.error} onUpload={() => setUploading(true)} />
+          <LectureTable classId={Number(id)} lectures={lectures.data} error={lectures.error} onUpload={() => setUploading(true)} />
         ) : (
           <StatsView classId={id} />
         )}
@@ -216,7 +216,8 @@ function UploadPanel({ classId, onDone }: { classId: string; onDone: () => void 
   );
 }
 
-function LectureTable({ lectures, error, onUpload }: { lectures?: Lecture[]; error: string | null; onUpload: () => void }) {
+function LectureTable({ classId, lectures, error, onUpload }: { classId: number; lectures?: Lecture[]; error: string | null; onUpload: () => void }) {
+  const { classes } = useClasses();
   if (error) return <ErrorNote>{error}</ErrorNote>;
   if (!lectures)
     return (
@@ -231,8 +232,14 @@ function LectureTable({ lectures, error, onUpload }: { lectures?: Lecture[]; err
       </Empty>
     );
   const delivery = (l: Lecture) =>
-    l.published ? (
-      <span className="text-[13px] font-semibold text-green">Đã giao cho lớp</span>
+    l.class_id !== classId ? (
+      <span className="text-[13px] font-semibold text-green">
+        Đã giao <span className="font-normal text-ink-3">· từ lớp {classes?.find((c) => c.id === l.class_id)?.name ?? "khác"}</span>
+      </span>
+    ) : l.class_ids.includes(classId) ? (
+      <span className="text-[13px] font-semibold text-green">
+        Đã giao{l.class_ids.length > 1 && <span className="font-normal text-ink-3"> · cho {l.class_ids.length} lớp</span>}
+      </span>
     ) : l.status === "ready" ? (
       <Link href={`/teacher/lectures/${l.id}`} className="inline-flex items-center gap-1 text-[13px] font-semibold text-red hover:underline">
         Chờ bạn duyệt <ArrowRight className="size-3.5" aria-hidden />

@@ -22,7 +22,10 @@ export type Lecture = {
   status: Status;
   progress: number;
   error: string | null;
+  /** Assigned to at least one class. */
   published: boolean;
+  /** Classes this lecture is assigned to; `class_id` is only where it was uploaded. */
+  class_ids: number[];
   /** Produced by the mock speech/LLM engines, not from the lecture itself. */
   mock: boolean;
   created_at: string;
