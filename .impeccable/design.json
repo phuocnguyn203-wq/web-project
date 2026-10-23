@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T00:00:00Z",
+  "title": "Design System: LectureCards",
+  "extensions": {
+    "colorMeta": {
+      "lich-red": { "role": "primary", "displayName": "Lịch Red", "canonical": "#c8102e", "tonalRamp": ["#3d0510", "#5e0818", "#800b20", "#a00d25", "#c8102e", "#e4566a", "#f2a5b0", "#fbe9ec"] },
+      "lich-red-deep": { "role": "primary", "displayName": "Lịch Red Deep", "canonical": "#a00d25" },
+      "lich-red-soft": { "role": "primary", "displayName": "Lịch Red Soft", "canonical": "#fbe9ec" },
+      "done-green": { "role": "secondary", "displayName": "Done Green", "canonical": "#1d7349", "tonalRamp": ["#082318", "#0e3a26", "#145535", "#1d7349", "#3a9468", "#77b896", "#b5dbc6", "#e6f3ec"] },
+      "done-green-soft": { "role": "secondary", "displayName": "Done Green Soft", "canonical": "#e6f3ec" },
+      "ink": { "role": "neutral", "displayName": "Blue-Black Ink", "canonical": "#121a2c", "tonalRamp": ["#121a2c", "#1d2740", "#3f4759", "#5f6678", "#8a90a0", "#b8bcc7", "#e2e4ea", "#f3f4f7"] },
+      "ink-raised": { "role": "neutral", "displayName": "Raised Ink", "canonical": "#1d2740" },
+      "ink-2": { "role": "neutral", "displayName": "Ink 2", "canonical": "#3f4759" },
+      "ink-3": { "role": "neutral", "displayName": "Ink 3 (lunar line)", "canonical": "#5f6678" },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#fdfdfb" },
+      "sheet-white": { "role": "neutral", "displayName": "Sheet White", "canonical": "#ffffff" },
+      "panel": { "role": "neutral", "displayName": "Panel", "canonical": "#f3f4f7" },
+      "rule": { "role": "neutral", "displayName": "Rule", "canonical": "#e2e4ea" }
+    },
+    "typographyMeta": {
+      "numeral-hero": { "displayName": "Numeral Hero", "purpose": "The one calendar numeral per screen: due count, done count, login date. 8rem to 13rem." },
+      "numeral-inline": { "displayName": "Numeral Inline", "purpose": "Counts inside a sentence." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles: class and lecture names." },
+      "title": { "displayName": "Title", "purpose": "Section titles; uppercase tracked for summary headings." },
+      "body": { "displayName": "Body", "purpose": "Summaries and explanatory copy, max 68ch." },
+      "sheet-head": { "displayName": "Sheet Head", "purpose": "Uppercase tracked date line, class group name, table heads." },
+      "label": { "displayName": "Label", "purpose": "Form labels, status, timestamps." }
+    },
+    "shadows": [
+      { "name": "sheet-lift", "value": "0 14px 36px -16px rgba(18,26,44,0.3)", "purpose": "Top sheet of a calendar block." },
+      { "name": "under-sheet", "value": "0 1px 2px rgba(18,26,44,0.1)", "purpose": "Blank sheets stacked under the top sheet." },
+      { "name": "binding", "value": "0 2px 4px rgba(18,26,44,0.25)", "purpose": "Ink binding bar on the login calendar." },
+      { "name": "field-focus", "value": "0 0 0 3px rgba(18,26,44,0.08)", "purpose": "Ink halo on focused inputs." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Press, rise, and flip." },
+      { "name": "ease-drawer", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "The sheet tear." },
+      { "name": "press", "value": "transform 140ms ease-out; scale(0.97) on :active", "purpose": "Every pressable." },
+      { "name": "tear", "value": "420ms; translate(18%, -110%) rotate(9deg), opacity 0, origin top-left", "purpose": "Rating a review card tears the sheet off. Reduced motion: 160ms fade." },
+      { "name": "rise", "value": "260ms; from translateY(6px), opacity 0", "purpose": "Next sheet and revealed panels. Reduced motion: none." },
+      { "name": "flip", "value": "420ms rotateY(180deg)", "purpose": "Card front to back. Reduced motion: instant." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Lịch red; the one main action on a screen.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Bắt đầu ôn</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border: 0; border-radius: 6px; font: 600 14px 'Be Vietnam Pro', system-ui, sans-serif; cursor: pointer; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), background-color 160ms ease, border-color 160ms ease; } .ds-btn:active { transform: scale(0.97); } .ds-btn:focus-visible { outline: 2px solid #121a2c; outline-offset: 2px; } .ds-btn-primary { background: #c8102e; color: #fff; } .ds-btn-primary:hover { background: #a00d25; }"
+    },
+    {
+      "name": "Ink Button",
+      "kind": "button",
+      "refersTo": "button-ink",
+      "description": "Secondary commits.",
+      "html": "<button class=\"ds-btn-ink\">Tham gia</button>",
+      "css": ".ds-btn-ink { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 0; border-radius: 6px; background: #121a2c; color: #fff; font: 600 14px 'Be Vietnam Pro', system-ui, sans-serif; cursor: pointer; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), background-color 160ms ease; } .ds-btn-ink:hover { background: #1d2740; } .ds-btn-ink:active { transform: scale(0.97); } .ds-btn-ink:focus-visible { outline: 2px solid #121a2c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "White with hairline; quiet actions.",
+      "html": "<button class=\"ds-btn-ghost\">Huỷ</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 1px solid #e2e4ea; border-radius: 6px; background: #fff; color: #121a2c; font: 600 14px 'Be Vietnam Pro', system-ui, sans-serif; cursor: pointer; transition: transform 140ms cubic-bezier(0.23,1,0.32,1), border-color 160ms ease; } .ds-btn-ghost:hover { border-color: #5f6678; } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: 2px solid #121a2c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Hairline field with ink focus halo and red caret.",
+      "html": "<input class=\"ds-input\" placeholder=\"Nhập mã lớp, VD: 4F2A9C\" />",
+      "css": ".ds-input { width: 100%; height: 40px; padding: 0 12px; border: 1px solid #e2e4ea; border-radius: 6px; background: #fff; color: #121a2c; caret-color: #c8102e; font: 400 15px 'Be Vietnam Pro', system-ui, sans-serif; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: #5f6678; } .ds-input:hover { border-color: #5f6678; } .ds-input:focus { outline: none; border-color: #121a2c; box-shadow: 0 0 0 3px rgba(18,26,44,0.08); }"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "description": "Underline tabs; active tab gets a 2px red underline.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab\" aria-selected=\"true\">Thẻ <span class=\"ds-tab-count\">24</span></button><button class=\"ds-tab\">Trắc nghiệm</button></div>",
+      "css": ".ds-tabs { display: flex; gap: 24px; border-bottom: 1px solid #e2e4ea; font-family: 'Be Vietnam Pro', system-ui, sans-serif; } .ds-tab { margin-bottom: -1px; padding: 4px 0 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: #5f6678; font-weight: 600; font-size: 14px; cursor: pointer; transition: color 160ms; } .ds-tab:hover { color: #121a2c; } .ds-tab[aria-selected=true] { color: #121a2c; border-bottom-color: #c8102e; } .ds-tab:focus-visible { outline: 2px solid #121a2c; outline-offset: 2px; } .ds-tab-count { margin-left: 6px; padding: 0 6px; border-radius: 4px; background: #f3f4f7; color: #3f4759; font-size: 12px; }"
+    },
+    {
+      "name": "Teacher Rail",
+      "kind": "nav",
+      "refersTo": "teacher-rail",
+      "description": "Ink rail of classes; active class is a white pill.",
+      "html": "<nav class=\"ds-rail\"><p class=\"ds-rail-head\">Lớp học</p><a class=\"ds-rail-item ds-active\" href=\"#\"><span>CTDL – N03</span><span>5</span></a><a class=\"ds-rail-item\" href=\"#\"><span>Mạng máy tính</span><span>2</span></a></nav>",
+      "css": ".ds-rail { width: 264px; padding: 12px; background: #121a2c; color: #fff; font-family: 'Be Vietnam Pro', system-ui, sans-serif; } .ds-rail-head { margin: 0 8px 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.6); } .ds-rail-item { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.8); text-decoration: none; transition: background-color 160ms, color 160ms; } .ds-rail-item:hover { background: rgba(255,255,255,0.08); color: #fff; } .ds-rail-item.ds-active { background: #fff; color: #121a2c; } .ds-rail-item:focus-visible { outline: 2px solid #121a2c; outline-offset: 2px; }"
+    },
+    {
+      "name": "Calendar Sheet",
+      "kind": "custom",
+      "refersTo": "tear-sheet",
+      "description": "Signature: perforated tear-off sheet with ink band, double sheet rule, and red numeral.",
+      "html": "<div class=\"ds-sheet\"><p class=\"ds-sheet-head\">Thứ tư, ngày 21 tháng 10</p><p class=\"ds-numeral\">6</p><p class=\"ds-sheet-caption\">thẻ cần ôn hôm nay</p></div>",
+      "css": ".ds-sheet { width: 320px; padding: 20px 24px 24px; border-top: 10px solid #121a2c; border-radius: 0 0 8px 8px; background: #fff; box-shadow: 0 14px 36px -16px rgba(18,26,44,0.3); text-align: center; font-family: 'Be Vietnam Pro', system-ui, sans-serif; color: #121a2c; mask: radial-gradient(circle at 50% 0, transparent 3.5px, #000 4px) 0 0 / 16px 100% repeat-x; } .ds-sheet-head { margin: 0; padding-bottom: 10px; border-bottom: 3px double #121a2c; font-size: 13px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; } .ds-numeral { margin: 12px 0 0; font: 700 9.5rem/0.95 'Barlow Condensed', sans-serif; letter-spacing: -0.03em; color: #c8102e; font-variant-numeric: tabular-nums; } .ds-sheet-caption { margin: 0; font-size: 15px; font-weight: 600; }"
+    },
+    {
+      "name": "Pipeline",
+      "kind": "custom",
+      "description": "Four step bars: done ink, current red pulsing, pending rule.",
+      "html": "<div class=\"ds-pipe\"><div class=\"ds-pipe-bars\"><span class=\"ds-done\"></span><span class=\"ds-now\"></span><span></span><span></span></div><p class=\"ds-pipe-label\">Tóm tắt <span>· 42%</span></p></div>",
+      "css": ".ds-pipe { min-width: 180px; font-family: 'Be Vietnam Pro', system-ui, sans-serif; } .ds-pipe-bars { display: flex; gap: 4px; } .ds-pipe-bars span { flex: 1; height: 6px; border-radius: 9999px; background: #e2e4ea; } .ds-pipe-bars .ds-done { background: #121a2c; } .ds-pipe-bars .ds-now { background: #c8102e; animation: ds-pulse 2s ease-in-out infinite; } @keyframes ds-pulse { 50% { opacity: 0.5; } } @media (prefers-reduced-motion: reduce) { .ds-pipe-bars .ds-now { animation: none; } } .ds-pipe-label { margin: 6px 0 0; font-size: 13px; color: #3f4759; } .ds-pipe-label span { color: #5f6678; font-variant-numeric: tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lịch Blốc",
+    "overview": "The app is a Vietnamese tear-off wall calendar. Each day the student gets one sheet: a weekday line under a double rule, one huge red numeral for the cards due, and a single red button. Rating a card tears that sheet off the block and shows the next one. Teachers work in the same paper-and-ink world, with an ink-navy rail for classes and a quiet table of lectures moving through the pipeline.\n\nThe ground is crisp paper white, not cream. Text is blue-black ink. Lịch red is the calendar's \"today\" red, and it marks what is due, current, or wrong. Rank comes from weight and case, not from size jumps: tracked uppercase sheet heads, bold titles, and regular body text, all in Be Vietnam Pro. The only big type is the condensed numeral, which carries the calendar's date or the count of cards due.\n\nInterfaces are dense where teachers need them, on laptops, and calm on phones, where students review in short sessions. Depth is physical: a sheet sits on a block of sheets, and nothing else floats.",
+    "keyCharacteristics": [
+      "Paper white ground, blue-black ink, lịch red as the single signal color.",
+      "Double hairline sheet rule under every page or sheet head.",
+      "Perforated top edge on calendar sheets, plus the logo mark.",
+      "Barlow Condensed bold for calendar numerals only; Be Vietnam Pro for everything else.",
+      "Tear-off motion when a review card is rated."
+    ],
+    "rules": [
+      { "name": "The Today Red Rule", "body": "Red means due, today, current, or wrong. Do not use it for decoration, and do not use it for success.", "section": "colors" },
+      { "name": "The Green Is Done Rule", "body": "Green appears only once something is finished or correct. A day with nothing left to review turns its sheet green.", "section": "colors" },
+      { "name": "The Weight Not Size Rule", "body": "Rank is carried by weight and case on a tight scale (12, 13, 15, 28px). Do not add intermediate display sizes. The numeral is the only exception.", "section": "typography" },
+      { "name": "The Numerals Only Rule", "body": "Barlow Condensed sets numbers only: dates, counts, and scores. Never use it for words. The single exception is the one-letter logo mark.", "section": "typography" },
+      { "name": "The Tabular Rule", "body": "Every number is tabular (`tnum` is on globally) so counts and dates line up.", "section": "typography" },
+      { "name": "The Sheet Head Rule", "body": "Every page and every sheet opens with its title over a 3px double ink rule (`border-bottom: 3px double`). This is the calendar sheet head, and it replaces boxed headers.", "section": "layout" },
+      { "name": "The Only Sheets Lift Rule", "body": "If it isn't a calendar sheet, it doesn't get a shadow. Cards, tables, and panels use a hairline.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do open every page and sheet with a title over the 3px double ink rule.",
+      "Do show the day's one number in Barlow Condensed bold red. Use a single hero numeral per screen.",
+      "Do keep red for due, today, current, or wrong, and green for done or correct.",
+      "Do use the perforated edge and sheet-lift shadow only on calendar sheets.",
+      "Do give every pressable the 0.97 press scale, and give every animation a reduced-motion fallback.",
+      "Do use the 2px red focus outline with a 2px offset (globally on `:focus-visible`).",
+      "Do use lucide line icons at 16px for actions, with an `aria-label` on icon-only buttons."
+    ],
+    "donts": [
+      "Don't build stat-card dashboards, progress rings, or KPI tiles. Show progress as a pipeline bar, a count, or a sheet.",
+      "Don't use cream or warm-tinted grounds. The paper is crisp white (#fdfdfb).",
+      "Don't set words in Barlow Condensed, and don't add display sizes between 28px and the numeral.",
+      "Don't give flat surfaces (tables, forms, lists) a shadow. Use a hairline.",
+      "Don't use typographic glyphs (●, →) as icons or status markers. Use a lucide icon or plain text."
+    ]
+  }
+}
