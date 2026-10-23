@@ -60,9 +60,14 @@ class LectureOut(ORM):
     status: str
     progress: int
     error: str | None
-    published: bool
+    published: bool  # assigned to at least one class
+    class_ids: list[int] = []  # classes it is assigned to
     mock: bool = False
     created_at: datetime
+
+
+class AssignIn(BaseModel):
+    class_ids: list[int]  # the full set; [] takes the lecture back from every class
 
 
 class SegmentOut(ORM):

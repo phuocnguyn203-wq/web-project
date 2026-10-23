@@ -423,6 +423,7 @@
           "lectures"
         ],
         "summary": "List Lectures",
+        "description": "Students: lectures assigned to the class. Teachers: also drafts uploaded here.",
         "operationId": "list_lectures_classes__class_id__lectures_get",
         "security": [
           {
@@ -681,13 +682,14 @@
         }
       }
     },
-    "/lectures/{lecture_id}/publish": {
-      "post": {
+    "/lectures/{lecture_id}/assignments": {
+      "put": {
         "tags": [
           "lectures"
         ],
-        "summary": "Publish Lecture",
-        "operationId": "publish_lecture_lectures__lecture_id__publish_post",
+        "summary": "Assign Lecture",
+        "description": "Set which of the teacher's classes see this lecture. One lecture, shared cards, many classes.",
+        "operationId": "assign_lecture_lectures__lecture_id__assignments_put",
         "security": [
           {
             "HTTPBearer": []
@@ -722,6 +724,16 @@
             "description": "For <video>/download links that can't send headers"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIn"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1956,6 +1968,22 @@
         ],
         "title": "AnswerOut"
       },
+      "AssignIn": {
+        "properties": {
+          "class_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Class Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "class_ids"
+        ],
+        "title": "AssignIn"
+      },
       "Body_create_lecture_classes__class_id__lectures_post": {
         "properties": {
           "title": {
@@ -2285,6 +2313,14 @@
           "published": {
             "type": "boolean",
             "title": "Published"
+          },
+          "class_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Class Ids",
+            "default": []
           },
           "mock": {
             "type": "boolean",

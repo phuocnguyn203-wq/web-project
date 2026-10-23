@@ -14,7 +14,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import ValidationError
-from sqlalchemy import case, func, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTask
 
@@ -92,10 +92,19 @@ def get_lecture(db: Session, lecture_id: int, user: m.User, edit: bool = False) 
     lec = db.get(m.Lecture, lecture_id)
     if not lec:
         raise HTTPException(404, "Không tìm thấy bài giảng")
-    get_class(db, lec.class_id, user)
-    if user.role == "student" and (edit or not lec.published):
+    if user.role == "teacher":
+        get_class(db, lec.class_id, user)
+    elif edit or not db.scalar(
+        select(m.Assignment)
+        .join(m.Enrollment, m.Enrollment.class_id == m.Assignment.class_id)
+        .where(m.Assignment.lecture_id == lec.id, m.Enrollment.user_id == user.id)
+    ):
         raise HTTPException(403, "Bài giảng chưa được giao")
     return lec
+
+
+def assigned_to(class_id: int):
+    return select(m.Assignment.lecture_id).where(m.Assignment.class_id == class_id)
 
 
 # ---------- classes ----------
@@ -105,7 +114,9 @@ def class_out(db: Session, c: m.Class) -> dict:
     return {
         **s.ClassOut.model_validate(c).model_dump(),
         "student_count": db.scalar(select(func.count()).where(m.Enrollment.class_id == c.id)),
-        "lecture_count": db.scalar(select(func.count()).where(m.Lecture.class_id == c.id)),
+        "lecture_count": db.scalar(
+            select(func.count()).where(or_(m.Lecture.class_id == c.id, m.Lecture.id.in_(assigned_to(c.id))))
+        ),
     }
 
 
@@ -150,11 +161,12 @@ def read_class(class_id: int, user: m.User = Depends(current_user), db: Session 
 
 @app.get("/classes/{class_id}/lectures", response_model=list[s.LectureOut], tags=["lectures"])
 def list_lectures(class_id: int, user: m.User = Depends(current_user), db: Session = Depends(get_db)):
+    """Students: lectures assigned to the class. Teachers: also drafts uploaded here."""
     get_class(db, class_id, user)
-    q = select(m.Lecture).where(m.Lecture.class_id == class_id)
-    if user.role == "student":
-        q = q.where(m.Lecture.published)
-    return db.scalars(q.order_by(m.Lecture.id.desc())).all()
+    cond = m.Lecture.id.in_(assigned_to(class_id))
+    if user.role == "teacher":
+        cond = or_(cond, m.Lecture.class_id == class_id)
+    return db.scalars(select(m.Lecture).where(cond).order_by(m.Lecture.id.desc())).all()
 
 
 @app.post("/classes/{class_id}/lectures", response_model=s.LectureOut, tags=["lectures"])
@@ -208,13 +220,20 @@ def read_lecture(lecture_id: int, user: m.User = Depends(current_user), db: Sess
     return get_lecture(db, lecture_id, user)
 
 
-@app.post("/lectures/{lecture_id}/publish", response_model=s.LectureOut, tags=["lectures"])
-def publish_lecture(lecture_id: int, user: m.User = Depends(teacher), db: Session = Depends(get_db)):
+@app.put("/lectures/{lecture_id}/assignments", response_model=s.LectureOut, tags=["lectures"])
+def assign_lecture(lecture_id: int, body: s.AssignIn, user: m.User = Depends(teacher), db: Session = Depends(get_db)):
+    """Set which of the teacher's classes see this lecture. One lecture, shared cards, many classes."""
     lec = get_lecture(db, lecture_id, user)
-    if lec.status != "ready":
+    ids = set(body.class_ids)
+    if ids and lec.status != "ready":
         raise HTTPException(409, "Bài giảng chưa xử lý xong")
-    lec.published = True
+    for cid in ids:
+        get_class(db, cid, user)
+    lec.assignments = [a for a in lec.assignments if a.class_id in ids] + [
+        m.Assignment(class_id=cid) for cid in ids - set(lec.class_ids)
+    ]
     db.commit()
+    db.refresh(lec)
     return lec
 
 
@@ -376,14 +395,14 @@ def as_utc(d: datetime) -> datetime:
 
 @app.get("/review/due", response_model=list[s.DueCard], tags=["study"])
 def due_cards(class_id: int | None = None, user: m.User = Depends(current_user), db: Session = Depends(get_db)):
-    q = (
-        select(m.Flashcard, m.Lecture)
-        .join(m.Lecture)
-        .join(m.Enrollment, m.Enrollment.class_id == m.Lecture.class_id)
-        .where(m.Enrollment.user_id == user.id, m.Lecture.published)
+    visible = (
+        select(m.Assignment.lecture_id)
+        .join(m.Enrollment, m.Enrollment.class_id == m.Assignment.class_id)
+        .where(m.Enrollment.user_id == user.id)
     )
     if class_id:
-        q = q.where(m.Lecture.class_id == class_id)
+        visible = visible.where(m.Assignment.class_id == class_id)
+    q = select(m.Flashcard, m.Lecture).join(m.Lecture).where(m.Lecture.id.in_(visible))
     logs, now = latest_logs(db, user.id), datetime.now(UTC)
     return [
         {
@@ -434,18 +453,17 @@ def class_stats(class_id: int, user: m.User = Depends(teacher), db: Session = De
             func.count(m.QuizAttempt.id),
             func.sum(case((m.QuizAttempt.correct, 0), else_=1)),
         )
-        .join(m.Lecture)
         .join(m.QuizAttempt)
-        .where(m.Lecture.class_id == class_id)
+        # a shared lecture collects attempts from every class: count only this class's students
+        .join(m.Enrollment, (m.Enrollment.user_id == m.QuizAttempt.user_id) & (m.Enrollment.class_id == class_id))
+        .where(m.QuizQuestion.lecture_id.in_(assigned_to(class_id)))
         .group_by(m.QuizQuestion.id, m.QuizQuestion.question)
     )
     questions = sorted(
         ({"question_id": i, "question": q, "attempts": n, "wrong_rate": (w or 0) / n} for i, q, n, w in qrows),
         key=lambda x: -x["wrong_rate"],
     )
-    card_ids = set(
-        db.scalars(select(m.Flashcard.id).join(m.Lecture).where(m.Lecture.class_id == class_id, m.Lecture.published))
-    )
+    card_ids = set(db.scalars(select(m.Flashcard.id).where(m.Flashcard.lecture_id.in_(assigned_to(class_id)))))
     now, students = datetime.now(UTC), []
     for u in db.scalars(select(m.User).join(m.Enrollment).where(m.Enrollment.class_id == class_id)):
         # ponytail: per-student queries, fine for class sizes < ~200
@@ -453,8 +471,7 @@ def class_stats(class_id: int, user: m.User = Depends(teacher), db: Session = De
         attempts = db.scalars(
             select(m.QuizAttempt.correct)
             .join(m.QuizQuestion)
-            .join(m.Lecture)
-            .where(m.QuizAttempt.user_id == u.id, m.Lecture.class_id == class_id)
+            .where(m.QuizAttempt.user_id == u.id, m.QuizQuestion.lecture_id.in_(assigned_to(class_id)))
         ).all()
         students.append(
             {

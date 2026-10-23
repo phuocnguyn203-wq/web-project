@@ -38,6 +38,7 @@ class Enrollment(Base):
 class Lecture(Base):
     __tablename__ = "lectures"
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Home class: where the teacher uploaded it. Students see it only through `assignments`.
     class_id: Mapped[int] = mapped_column(ForeignKey("classes.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(300))
     source_type: Mapped[str] = mapped_column(String(10))  # file | youtube
@@ -47,10 +48,27 @@ class Lecture(Base):
     status: Mapped[str] = mapped_column(String(20), default="queued")
     progress: Mapped[int] = mapped_column(Integer, default=0)
     error: Mapped[str | None] = mapped_column(Text)
-    published: Mapped[bool] = mapped_column(Boolean, default=False)
     # True when the transcript or the cards came from a stand-in (mock engine), not the lecture itself.
     mock: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    assignments: Mapped[list["Assignment"]] = relationship(cascade="all, delete-orphan", lazy="selectin")
+
+    @property
+    def class_ids(self) -> list[int]:
+        return sorted(a.class_id for a in self.assignments)
+
+    @property
+    def published(self) -> bool:
+        return bool(self.assignments)
+
+
+class Assignment(Base):
+    """A lecture given to a class. One lecture can go to many classes; cards and quiz stay shared."""
+
+    __tablename__ = "assignments"
+    lecture_id: Mapped[int] = mapped_column(ForeignKey("lectures.id", ondelete="CASCADE"), primary_key=True)
+    class_id: Mapped[int] = mapped_column(ForeignKey("classes.id", ondelete="CASCADE"), primary_key=True, index=True)
+    assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
 class Transcript(Base):

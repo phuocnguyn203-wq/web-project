@@ -55,7 +55,7 @@ def test_end_to_end():
     assert c.get(f"/lectures/{lec['id']}", headers=st).status_code == 403
     cards = c.get(f"/lectures/{lec['id']}/flashcards", headers=t).json()
     assert cards and c.delete(f"/flashcards/{cards[0]['id']}", headers=t).status_code == 204
-    c.post(f"/lectures/{lec['id']}/publish", headers=t)
+    c.put(f"/lectures/{lec['id']}/assignments", json={"class_ids": [cls["id"]]}, headers=t)
 
     due = c.get("/review/due", headers=st).json()
     assert len(due) == len(cards) - 1
@@ -126,3 +126,26 @@ def test_upload_with_quiz_options():
     assert len(quiz) == 4 and {(q["kind"], q["difficulty"]) for q in quiz} == {("true_false", "easy")}
     bad = c.post(f"/classes/{cls['id']}/lectures", data={**form, "quiz_kinds": "essay"}, headers=t)
     assert bad.status_code == 422
+
+
+def test_one_lecture_assigned_to_many_classes():
+    t, other = auth("gv5@x.vn", "teacher"), auth("gv6@x.vn", "teacher")
+    a, b = (c.post("/classes", json={"name": n}, headers=t).json() for n in ("A", "B"))
+    foreign = c.post("/classes", json={"name": "X"}, headers=other).json()
+    sa, sb = auth("sa@x.vn", "student"), auth("sb@x.vn", "student")
+    c.post("/classes/join", json={"code": a["code"]}, headers=sa)
+    c.post("/classes/join", json={"code": b["code"]}, headers=sb)
+    lec = c.post(f"/classes/{a['id']}/lectures", data={"title": "L", "youtube_url": "https://youtu.be/m"}, headers=t)
+    lid = lec.json()["id"]
+    url = f"/lectures/{lid}/assignments"
+
+    assert c.put(url, json={"class_ids": [foreign["id"]]}, headers=t).status_code == 403  # not your class
+    out = c.put(url, json={"class_ids": [a["id"], b["id"]]}, headers=t).json()
+    assert out["class_ids"] == sorted([a["id"], b["id"]]) and out["published"]
+    # both classes list it and share the same cards
+    assert [x["id"] for x in c.get(f"/classes/{b['id']}/lectures", headers=sb).json()] == [lid]
+    assert c.get("/review/due", headers=sa).json() == c.get("/review/due", headers=sb).json()
+
+    assert c.put(url, json={"class_ids": [a["id"]]}, headers=t).json()["class_ids"] == [a["id"]]
+    assert c.get(f"/lectures/{lid}", headers=sb).status_code == 403  # taken back from B
+    assert c.get(f"/lectures/{lid}", headers=sa).status_code == 200
