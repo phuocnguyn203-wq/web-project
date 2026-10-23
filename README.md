@@ -18,38 +18,57 @@ Mặc định mọi thứ chạy với **mock** (`SPEECH_ENGINE=mock`, `LLM_PROV
 
 ## Chạy khi phát triển (không Docker)
 
-Mở 2 terminal ở thư mục gốc. `--env-file ../.env` để backend đọc key LLM trong `.env`.
+Backend và frontend là **2 server chạy song song, mỗi cái chiếm 1 terminal** và không trả lại dấu nhắc. Dán từng khung dưới đây vào đúng terminal của nó, đừng dán chung. Nếu Docker đang chạy thì `docker compose down` trước (trùng cổng 3000/8000).
 
-**macOS / Linux / Git Bash**
+**Windows PowerShell** — mọi terminal mở ở thư mục gốc `web-project`:
 
-```bash
-# Terminal 1 — Backend (Python 3.12+)
-python -m venv .venv && source .venv/bin/activate   # Git Bash: source .venv/Scripts/activate
-pip install -e ".[dev]"
-cd backend
-PYTHONPATH=..:. alembic upgrade head                 # tạo/cập nhật bảng (SQLite dev.db)
-PYTHONPATH=..:. SYNC_JOBS=1 uvicorn app.main:app --reload --env-file ../.env   # job chạy ngay trong request, không cần Redis
-
-# Terminal 2 — Frontend
-cd frontend && npm install && npm run dev
-```
-
-**Windows PowerShell**
+Bước 1 — cài đặt, **chỉ chạy lần đầu** (Python 3.12+, Node 20+):
 
 ```powershell
-# Terminal 1 — Backend
-python -m venv .venv; .venv\Scripts\Activate.ps1
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 pip install -e ".[dev]"
+cd frontend; npm install; cd ..
+```
+
+Bước 2 — **Terminal 1**, backend ở http://localhost:8000 (SQLite `backend/dev.db`, job chạy ngay trong request nên không cần Redis; `--env-file` để đọc key LLM trong `.env`):
+
+```powershell
+.venv\Scripts\Activate.ps1
 cd backend
 $env:PYTHONPATH = "..;."; $env:SYNC_JOBS = "1"
 alembic upgrade head
 uvicorn app.main:app --reload --env-file ../.env
-
-# Terminal 2 — Frontend
-cd frontend; npm install; npm run dev
 ```
 
-Nếu Docker đang chạy thì `docker compose down` trước, vì cổng 3000/8000 bị chiếm.
+Bước 3 — mở **Terminal 2** mới (nút `+` trong khung Terminal), frontend ở http://localhost:3000:
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Mở http://localhost:3000 khi Terminal 2 hiện `✓ Ready`. `Ctrl+C` trong terminal nào thì tắt server đó.
+
+**macOS / Linux / Git Bash** — giống hệt, chỉ khác cú pháp:
+
+```bash
+# lần đầu
+python -m venv .venv && source .venv/bin/activate   # Git Bash: source .venv/Scripts/activate
+pip install -e ".[dev]" && (cd frontend && npm install)
+```
+
+```bash
+# Terminal 1 — backend
+source .venv/bin/activate && cd backend
+PYTHONPATH=..:. alembic upgrade head
+PYTHONPATH=..:. SYNC_JOBS=1 uvicorn app.main:app --reload --env-file ../.env
+```
+
+```bash
+# Terminal 2 — frontend
+cd frontend && npm run dev
+```
 
 Đổi model trong `backend/app/models.py` thì tạo migration: `cd backend && alembic revision --autogenerate -m "mo ta"`, đọc lại file sinh ra, rồi commit cùng PR. CI chạy `alembic check` để bắt trường hợp quên tạo migration.
 
