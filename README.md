@@ -18,18 +18,38 @@ Mặc định mọi thứ chạy với **mock** (`SPEECH_ENGINE=mock`, `LLM_PROV
 
 ## Chạy khi phát triển (không Docker)
 
+Mở 2 terminal ở thư mục gốc. `--env-file ../.env` để backend đọc key LLM trong `.env`.
+
+**macOS / Linux / Git Bash**
+
 ```bash
-# Backend (Python 3.12+)
-python -m venv .venv && .venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+# Terminal 1 — Backend (Python 3.12+)
+python -m venv .venv && source .venv/bin/activate   # Git Bash: source .venv/Scripts/activate
 pip install -e ".[dev]"
 cd backend
-alembic upgrade head                        # tạo/cập nhật bảng (SQLite dev.db)
-SYNC_JOBS=1 uvicorn app.main:app --reload   # chạy job ngay trong request, không cần Redis
-# PowerShell: $env:PYTHONPATH="..;."; alembic upgrade head; $env:SYNC_JOBS=1; uvicorn app.main:app --reload
+PYTHONPATH=..:. alembic upgrade head                 # tạo/cập nhật bảng (SQLite dev.db)
+PYTHONPATH=..:. SYNC_JOBS=1 uvicorn app.main:app --reload --env-file ../.env   # job chạy ngay trong request, không cần Redis
 
-# Frontend
+# Terminal 2 — Frontend
 cd frontend && npm install && npm run dev
 ```
+
+**Windows PowerShell**
+
+```powershell
+# Terminal 1 — Backend
+python -m venv .venv; .venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+cd backend
+$env:PYTHONPATH = "..;."; $env:SYNC_JOBS = "1"
+alembic upgrade head
+uvicorn app.main:app --reload --env-file ../.env
+
+# Terminal 2 — Frontend
+cd frontend; npm install; npm run dev
+```
+
+Nếu Docker đang chạy thì `docker compose down` trước, vì cổng 3000/8000 bị chiếm.
 
 Đổi model trong `backend/app/models.py` thì tạo migration: `cd backend && alembic revision --autogenerate -m "mo ta"`, đọc lại file sinh ra, rồi commit cùng PR. CI chạy `alembic check` để bắt trường hợp quên tạo migration.
 
