@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #fdfdfb;
+  --color-panel: #f3f4f7;
+  --color-rule: #e2e4ea;
+  --color-ink: #121a2c;
+  --color-ink-2: #3f4759;
+  --color-ink-3: #5f6678;
+  --color-red: #c8102e;
+  --color-red-deep: #a00d25;
+  --color-red-soft: #fbe9ec;
+  --color-green: #1d7349;
+  --color-green-soft: #e6f3ec;
+  --color-navy: #121a2c;
+  --color-navy-2: #1d2740;
+
+  --font-sans: var(--font-ui), system-ui, sans-serif;
+  --font-num: var(--font-num), var(--font-ui), sans-serif;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Base rules live in a layer so component utilities (e.g. inputs' own focus ring) can override them. */
+@layer base {
+  html {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    font-feature-settings: "ss01", "tnum";
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-red);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  * {
+    scrollbar-color: var(--color-rule) transparent;
+    scrollbar-width: thin;
+  }
+  input,
+  textarea {
+    caret-color: var(--color-red);
+  }
+  a {
+    text-underline-offset: 3px;
+  }
+}
+
+/* Calendar sheet head: the double hairline under every page title */
+.sheet-rule {
+  border-bottom: 3px double var(--color-ink);
+}
+
+/* Perforated top edge of a tear-off sheet */
+.perforated {
+  --hole: 7px;
+  mask:
+    radial-gradient(circle at 50% 0, transparent calc(var(--hole) / 2), #000 calc(var(--hole) / 2 + 0.5px)) 0 0 / 16px 100%
+      repeat-x;
+}
+
+.press {
+  transition: transform 140ms var(--ease-out), background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Signature: tearing a sheet off the block */
+@keyframes tear {
+  to {
+    transform: translate(18%, -110%) rotate(9deg);
+    opacity: 0;
+  }
+}
+.tearing {
+  transform-origin: 0% 0%;
+  animation: tear 420ms var(--ease-drawer) forwards;
+  pointer-events: none;
+}
+@keyframes rise {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+}
+.rise {
+  animation: rise 260ms var(--ease-out) both;
+}
+
+.flip {
+  transform-style: preserve-3d;
+  transition: transform 420ms var(--ease-out);
+}
+.flip[data-flipped="true"] {
+  transform: rotateY(180deg);
+}
+.face {
+  backface-visibility: hidden;
+}
+.face-back {
+  transform: rotateY(180deg);
+}
+
+/* Processing art: one station per pipeline step; only data-state="active" moves. */
+.proc-bar {
+  fill: var(--color-rule);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.proc[data-state="done"] .proc-bar {
+  fill: var(--color-ink);
+}
+.proc[data-state="active"] .proc-bar {
+  fill: var(--color-red);
+  animation: proc-bar 900ms var(--ease-in-out) infinite alternate;
+}
+@keyframes proc-bar {
+  from {
+    transform: scaleY(0.35);
+  }
+}
+.proc-paper {
+  fill: #fff;
+  stroke: var(--color-rule);
+  stroke-width: 1.5;
+}
+.proc:not([data-state="pending"]) .proc-paper {
+  stroke: var(--color-ink-3);
+}
+.proc-line {
+  fill: var(--color-rule);
+  transform-box: fill-box;
+  transform-origin: left;
+}
+.proc[data-state="done"] .proc-line {
+  fill: var(--color-ink-3);
+}
+.proc[data-state="active"] .proc-line {
+  fill: var(--color-ink);
+  animation: proc-write 2000ms linear infinite both;
+}
+@keyframes proc-write {
+  0% {
+    transform: scaleX(0);
+  }
+  45%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+.proc-band {
+  fill: var(--color-rule);
+}
+.proc[data-state="done"] .proc-band {
+  fill: var(--color-ink);
+}
+.proc[data-state="active"] .proc-band {
+  fill: var(--color-red);
+}
+.proc[data-state="pending"] .proc-card {
+  opacity: 0.45;
+}
+.proc[data-state="active"] .proc-card {
+  animation: proc-card 1600ms var(--ease-out) infinite both;
+}
+@keyframes proc-card {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  35%,
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Done for today: torn sheets drop into a pile, once. Final pose is the resting style. */
+.pile-sheet {
+  transform: translate(var(--x), var(--y)) rotate(var(--r));
+  animation: pile-drop 560ms var(--ease-out) both;
+}
+@keyframes pile-drop {
+  from {
+    transform: translate(var(--x), -150px) rotate(calc(var(--r) * -2));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proc-bar,
+  .proc-line,
+  .proc-card,
+  .pile-sheet {
+    animation: none !important;
+  }
+  .tearing {
+    animation: fade-out 160ms ease forwards;
+  }
+  .rise {
+    animation: none;
+  }
+  .flip {
+    transition: none;
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+}
