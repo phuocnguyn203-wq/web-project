@@ -1,0 +1,44 @@
+[project]
+name = "lecturecards"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sqlalchemy>=2.0",
+  "psycopg[binary]>=3.2",
+  "pydantic[email]>=2.8",
+  "python-multipart>=0.0.9",
+  "pyjwt>=2.9",
+  "httpx>=0.27",
+  "redis>=5",
+  "rq>=1.16",
+  "alembic>=1.13",
+  "genanki>=0.13",
+  "pypdf>=5",
+  "python-pptx>=1.0",
+  "yt-dlp>=2025.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+# Real speech models (Person 1). Heavy: install on the GPU box only.
+speech = ["transformers>=4.44", "torch"]
+
+[tool.setuptools]
+packages = []  # deps-only install; code runs via PYTHONPATH (see pytest config / Dockerfile)
+
+[tool.pytest.ini_options]
+pythonpath = [".", "backend"]
+testpaths = ["ai/tests", "backend/tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["B008"]  # FastAPI Depends() in defaults is the idiom
+
+[tool.ruff.lint.isort]
+known-first-party = ["ai", "app"]

@@ -1,0 +1,21 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.db
+uploads/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+.next/
+frontend/out/
+.impeccable/review/
+.impeccable/mocks/
+*.log
+*.egg-info/
+
+# local only
+accs.txt
+/package.json
+/package-lock.json
+*.tsbuildinfo
