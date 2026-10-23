@@ -21,7 +21,8 @@ export const viewport: Viewport = { themeColor: "#fdfdfb" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${ui.variable} ${num.variable}`}>
+    // Browser extensions (dark mode, translators) inject attributes on <html> before hydration.
+    <html lang="vi" className={`${ui.variable} ${num.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh font-sans antialiased">{children}</body>
     </html>
   );
