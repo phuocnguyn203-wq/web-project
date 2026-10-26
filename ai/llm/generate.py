@@ -322,14 +322,16 @@ def _fill(slots, pool: list[QuizItem]) -> list[QuizItem]:
 
 
 VERIFY_PROMPT = """Giải độc lập từng câu trắc nghiệm dưới đây (tự tính toán cẩn thận, không đoán).
-Trả về JSON {{"answers":[int, ...]}}: chỉ số (từ 0) của phương án đúng cho từng câu, theo đúng thứ tự;
-dùng -1 nếu không có phương án nào đúng hoặc có nhiều hơn một phương án đúng.
+Trả về JSON {{"answers":[int, ...]}}, mỗi câu một số, theo đúng thứ tự:
+- chỉ số (từ 0) của phương án đúng;
+- -1 nếu câu hỏi về chi tiết riêng của bài giảng mà bạn không thể chắc chắn nếu không có bài giảng;
+- -2 nếu câu có lỗi: không phương án nào đúng, hoặc nhiều hơn một phương án đúng.
 
 {questions}"""
 
 
 def _verify(pool: list[QuizItem]) -> list[QuizItem]:
-    """Second opinion: the model re-solves every question blind; keep only those where it agrees with the key.
+    """Second opinion: the model re-solves every question blind and drops those where it contradicts the key.
     Catches miscalculated answers (worst for calculation questions). If a check fails, that batch is kept."""
     kept = []
     for b in range(0, len(pool), 10):  # small batches keep each request inside tokens-per-minute limits
@@ -345,8 +347,13 @@ def _verify(pool: list[QuizItem]) -> list[QuizItem]:
         if not isinstance(answers, list) or len(answers) != len(batch):
             kept += batch
             continue
-        kept += [q for q, a in zip(batch, answers, strict=True) if a == q.answer_index]
+        # -1: the blind solver can't know lecture-specific facts, so it has no opinion; only a different answer
+        # (a miscalculation) or -2 (no / several right options) is evidence against the key.
+        kept += [q for q, a in zip(batch, answers, strict=True) if a in (q.answer_index, UNSURE)]
     return kept
+
+
+UNSURE = -1
 
 
 def _shuffle(q: QuizItem) -> QuizItem:

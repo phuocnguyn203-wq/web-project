@@ -113,3 +113,12 @@ def test_chat_json_retries_invalid_json(monkeypatch):
     assert g._chat_json("p") == {"quiz": []}
     monkeypatch.setattr(g, "_chat", lambda prompt, json_mode: "not json")
     assert g._chat_json("p") == {}
+
+
+def test_verify_drops_only_contradicted_questions(monkeypatch):
+    from ai.llm import generate as g
+
+    pool = [QuizItem(question=f"Câu {i}?", options=["A", "B", "C"], answer_index=0, source_start=0) for i in range(4)]
+    # unsure (lecture-specific fact) / agrees / different answer / broken question
+    monkeypatch.setattr(g, "_chat", lambda prompt, json_mode: '{"answers": [-1, 0, 2, -2]}')
+    assert [q.question for q in g._verify(pool)] == ["Câu 0?", "Câu 1?"]
