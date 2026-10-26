@@ -1,0 +1,58 @@
+# Production overlay on a single VPS. From the repo root:
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+# Only Caddy is reachable from outside (80/443, automatic HTTPS). Web and API share one domain: /api/* -> api.
+# Relative paths resolve from the repo root (the first compose file's folder).
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+x-db-url: &db-url postgresql+psycopg://lc:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/lc
+
+services:
+  db:
+    environment: { POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}" }
+    restart: unless-stopped
+    logging: *logging
+
+  redis:
+    restart: unless-stopped
+    logging: *logging
+
+  api:
+    ports: !reset []
+    environment:
+      DATABASE_URL: *db-url
+      APP_ENV: production # refuses to start with a weak JWT_SECRET
+      CORS_ORIGINS: https://${DOMAIN:?set DOMAIN in .env}
+    command: ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips '*'"]
+    logging: *logging
+
+  worker:
+    environment:
+      DATABASE_URL: *db-url
+      APP_ENV: production
+    logging: *logging
+
+  web:
+    build:
+      args: { NEXT_PUBLIC_API_URL: /api }
+    ports: !reset []
+    restart: unless-stopped
+    logging: *logging
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment: { DOMAIN: "${DOMAIN:?set DOMAIN in .env}" }
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, web]
+    logging: *logging
+
+volumes:
+  caddy_data:
+  caddy_config:

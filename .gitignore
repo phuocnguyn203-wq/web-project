@@ -19,3 +19,4 @@ accs.txt
 /package.json
 /package-lock.json
 *.tsbuildinfo
+backups/

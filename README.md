@@ -99,7 +99,7 @@ CI sẽ fail nếu file này cũ hơn code. Đổi API thì sửa `schemas.py`, 
 - **YouTube:** nếu video có phụ đề (tiếng Việt, hoặc tiếng Anh), hệ thống dùng luôn phụ đề đó làm lời giảng kèm timestamp, không cần GPU. Bài nào xử lý bằng mock sẽ có nhãn **"Dữ liệu mẫu"** trên giao diện.
 
 - **LLM:** đặt `LLM_PROVIDER=openai` cùng `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`. Mọi endpoint tương thích OpenAI đều dùng được (OpenAI, Gemini, Groq, Ollama/vLLM tự host); xem ví dụ trong `.env.example`.
-- **Speech:** `pip install -e ".[speech]"` trên máy có GPU, đặt `SPEECH_ENGINE=phowhisper` (hoặc `whisper`). Nếu không có GPU: chạy worker trên Colab/Modal, trỏ cùng `REDIS_URL` và `DATABASE_URL`.
+- **Speech (file tải lên, video không có phụ đề):** `SPEECH_ENGINE=api` gửi âm thanh (nén Opus, khoảng 7 MB/giờ) tới Whisper trên Groq, dùng chung key LLM, không cần GPU. Muốn chạy model trên máy mình: `pip install -e ".[speech]"` trên máy có GPU rồi đặt `SPEECH_ENGINE=phowhisper` (hoặc `whisper`). Cần có `ffmpeg`; image Docker đã cài sẵn.
 
 ## Luồng xử lý
 
@@ -110,8 +110,11 @@ worker: transcribing → summarizing → generating → ready   (FE poll GET /le
 
 ## Deploy
 
-- Frontend → Vercel: root `frontend/`, env `NEXT_PUBLIC_API_URL=https://<backend>`.
-- Backend → VPS/Render: `docker compose up -d` (bỏ service `web`), đặt `CORS_ORIGINS` là domain Vercel và một `JWT_SECRET` thật.
+Một VPS + Docker, có HTTPS tự động (Caddy): xem từng bước trong [deploy/README.md](deploy/README.md).
+
+```bash
+docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml up -d --build
+```
 
 ## Thiết kế
 
