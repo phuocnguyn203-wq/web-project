@@ -17,7 +17,7 @@ dependencies = [
   "genanki>=0.13",
   "pypdf>=5",
   "python-pptx>=1.0",
-  "yt-dlp>=2025.1",
+  "yt-dlp[default]>=2025.11",
 ]
 
 [project.optional-dependencies]

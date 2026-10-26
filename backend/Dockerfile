@@ -1,6 +1,8 @@
 # Build context: repo root (needs ai/ + backend/). Used for both the API and the RQ worker.
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+# yt-dlp needs a JS runtime to solve YouTube's player challenges (captions + audio download)
+COPY --from=denoland/deno:bin-2.5.6 /deno /usr/local/bin/deno
 WORKDIR /app
 COPY pyproject.toml .
 RUN pip install --no-cache-dir .

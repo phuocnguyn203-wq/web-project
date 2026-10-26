@@ -38,12 +38,13 @@ def process_lecture(lecture_id: int, quiz: dict | None = None) -> None:
             elif captions:
                 segs, engine = captions[0], f"captions:{captions[1]}"
             else:
-                audio = None
-                if SPEECH_ENGINE != "mock":
-                    tmp = Path(tempfile.mkdtemp())
-                    src = download_youtube(lec.source_url, tmp) if lec.source_type == "youtube" else Path(lec.file_path)
-                    audio = extract_audio(src, tmp / "audio.wav")
-                segs = transcribe(audio, SPEECH_ENGINE)
+                with tempfile.TemporaryDirectory() as d:  # downloaded audio can be hundreds of MB
+                    audio, tmp = None, Path(d)
+                    if SPEECH_ENGINE != "mock":
+                        yt = lec.source_type == "youtube"
+                        src = download_youtube(lec.source_url, tmp) if yt else Path(lec.file_path)
+                        audio = extract_audio(src, tmp / ("audio.ogg" if SPEECH_ENGINE == "api" else "audio.wav"))
+                    segs = transcribe(audio, SPEECH_ENGINE)
             db.add(
                 m.Transcript(
                     lecture_id=lec.id,
@@ -66,6 +67,8 @@ def process_lecture(lecture_id: int, quiz: dict | None = None) -> None:
                 # Summary and flashcards are already worth having; the teacher can retry from the quiz tab.
                 log.warning("quiz generation failed for lecture %s", lec.id, exc_info=True)
                 questions = []
+            if not questions:
+                log.warning("lecture %s has no quiz questions; the teacher can generate them from the quiz tab", lec.id)
             db.add_all(m.QuizQuestion(lecture_id=lec.id, **q.model_dump()) for q in questions)
             step("ready", 100)
         except Exception as e:

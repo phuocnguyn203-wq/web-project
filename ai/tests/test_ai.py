@@ -79,3 +79,37 @@ def test_chat_falls_back_when_daily_quota_hit(monkeypatch):
     monkeypatch.setattr(g, "_post", lambda *a: day)
     with pytest.raises(QuotaExceeded):
         g._chat("hi")
+
+
+def test_api_transcription_uses_llm_key_and_drops_blank_segments(monkeypatch, tmp_path):
+    import httpx
+
+    audio = tmp_path / "a.ogg"
+    audio.write_bytes(b"x")
+    monkeypatch.setenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    sent = {}
+
+    def fake_post(url, headers, data, files, timeout):
+        sent.update(url=url, auth=headers["Authorization"], model=data["model"])
+        segs = [{"start": 0.0, "end": 4.2, "text": " Xin chào "}, {"start": 4.2, "end": 5.0, "text": " "}]
+        return httpx.Response(200, json={"segments": segs}, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    segs = transcribe(audio, "api")
+    assert [(s.start, s.text) for s in segs] == [(0.0, "Xin chào")]
+    assert sent == {
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "auth": "Bearer k",
+        "model": "whisper-large-v3",
+    }
+
+
+def test_chat_json_retries_invalid_json(monkeypatch):
+    from ai.llm import generate as g
+
+    replies = iter(['{"quiz": [', '{"quiz": []}'])
+    monkeypatch.setattr(g, "_chat", lambda prompt, json_mode: next(replies))
+    assert g._chat_json("p") == {"quiz": []}
+    monkeypatch.setattr(g, "_chat", lambda prompt, json_mode: "not json")
+    assert g._chat_json("p") == {}

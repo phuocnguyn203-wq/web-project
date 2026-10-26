@@ -5,6 +5,7 @@ Works with OpenAI, Gemini (OpenAI endpoint), Groq, Ollama, vLLM — anything spe
 """
 
 import json
+import logging
 import os
 import random
 import re
@@ -16,6 +17,8 @@ import httpx
 
 from .clean import chunk_segments, clean_text
 from .schemas import TRUE_FALSE, CardSet, Flashcard, QuizItem
+
+log = logging.getLogger(__name__)
 
 
 class QuotaExceeded(RuntimeError):
@@ -58,6 +61,16 @@ def _chat(prompt: str, json_mode: bool = False) -> str:
         "Đã hết hạn mức AI trong ngày của mọi model đã cấu hình (gói miễn phí Groq: 200.000 token/ngày/model). "
         "Thử lại sau, thêm model vào LLM_FALLBACK_MODELS, hoặc dùng khoá khác."
     )
+
+
+def _chat_json(prompt: str) -> dict:
+    """JSON-mode chat, asked twice: models now and then return truncated or invalid JSON. {} if both fail."""
+    for _ in range(2):
+        try:
+            return json.loads(_chat(prompt, True))
+        except json.JSONDecodeError:
+            log.warning("model returned invalid JSON, retrying")
+    return {}
 
 
 def _post(model: str, prompt: str, json_mode: bool) -> httpx.Response:
@@ -281,10 +294,7 @@ def generate_quiz(
             levels="; ".join(LEVELS[lv] for lv in levels),
             text=_fmt(chunk),
         )
-        try:
-            pool += _valid(QuizItem, json.loads(_chat(prompt, True)).get("quiz", []))
-        except json.JSONDecodeError:
-            continue
+        pool += _valid(QuizItem, _chat_json(prompt).get("quiz", []))
     pool = _verify([q for q in dedupe(pool, lambda q: q.question) if q.kind in kinds])
     picked = _fill(slots, pool)
     if difficulty != "mixed":
@@ -354,10 +364,7 @@ def generate_cards(segments) -> CardSet:
     else:
         cards, quiz = [], []
         for chunk in chunk_segments(segments, CHUNK_CHARS):
-            try:
-                data = json.loads(_chat(CARD_PROMPT.format(text=_fmt(chunk)), True))
-            except json.JSONDecodeError:
-                continue
+            data = _chat_json(CARD_PROMPT.format(text=_fmt(chunk)))
             # Validate item by item: one malformed question shouldn't sink the whole chunk.
             cards += _valid(Flashcard, data.get("flashcards", []))
             quiz += _valid(QuizItem, data.get("quiz", []))
