@@ -36,9 +36,9 @@ Mỗi dòng là một GitHub issue (gắn label theo người: `speech`, `llm`, 
 - ~~**L-6** Xuất `.apkg`~~ — **đã xong** (`/lectures/{id}/export.apkg`, GUID ổn định để import lại không trùng). Mở rộng: kèm ảnh slide vào thẻ.
 
 ### Backend: `backend/`
-- ~~**B-1** Alembic~~ — **đã xong**: `backend/migrations/`, Docker tự `upgrade head`, CI chạy `alembic check`.
+- ~~**B-1** Migration~~ — **đã xong**: `backend/migrations/*.sql`, API tự áp khi khởi động (bảng `schema_migrations`).
 - **B-2** Tiến độ chi tiết trong job (vd. % theo số chunk đã nhận dạng); endpoint huỷ/thử lại job lỗi.
-- ~~**B-3** Trích text PDF/PPTX~~ — **đã xong** (`backend/app/documents.py`).
+- ~~**B-3** Trích text PDF/PPTX~~ — **đã xong** (`ai/service/documents.py`).
 - **B-3b** OCR cho PDF dạng scan (hiện báo lỗi "Không trích được chữ"): thử Tesseract `vie` hoặc VietOCR.
 - **B-4** Phân trang `/classes/{id}/lectures`, index cho `review_logs(user_id, flashcard_id)`; tối ưu `class_stats` (hiện đang query theo từng sinh viên).
 - **B-5** Rate limit đăng nhập, kiểm tra MIME file upload, `JWT_SECRET` bắt buộc khi production.

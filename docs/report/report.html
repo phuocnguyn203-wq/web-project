@@ -116,61 +116,71 @@
 <!-- ===================== 2. Kiến trúc ===================== -->
 <section class="page-break">
   <h2><span class="n">02</span> Kiến trúc</h2>
-  <p>Repo là một monorepo chia theo người phụ trách: <code>ai/speech</code>, <code>ai/llm</code>, <code>backend</code>, <code>frontend</code>, <code>deploy</code>. Các phần nói chuyện với nhau qua <b>hợp đồng OpenAPI</b> viết trước (<code>docs/openapi.json</code>), nên frontend và backend làm song song được.</p>
+  <p>Repo là một monorepo chia theo người phụ trách: <code>ai/speech</code>, <code>ai/llm</code>, <code>ai/service</code>, <code>backend</code>, <code>frontend</code>, <code>deploy</code>. Hệ thống gồm hai service: <b>backend Node.js + Express</b> lo REST API, xác thực và cơ sở dữ liệu; <b>service AI bằng FastAPI</b> (nội bộ, không ra Internet) lo nhận dạng giọng nói và LLM. Các phần nói chuyện với nhau qua <b>hợp đồng OpenAPI</b> viết trước (<code>docs/openapi.json</code>), nên frontend và backend làm song song được.</p>
 
   <figure class="keep">
-    <svg viewBox="0 0 700 250" width="100%" font-family="Be Vietnam Pro, sans-serif" font-size="11">
-      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#121a2c"/></marker></defs>
-      <!-- browser -->
-      <rect x="4" y="96" width="104" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
-      <text x="56" y="120" text-anchor="middle" font-weight="700">Trình duyệt</text>
-      <text x="56" y="136" text-anchor="middle" fill="#6b7385" font-size="9.5">GV · SV (điện thoại)</text>
-      <!-- caddy -->
-      <rect x="140" y="96" width="92" height="56" rx="5" fill="#121a2c"/>
-      <text x="186" y="120" text-anchor="middle" font-weight="700" fill="#fff">Caddy</text>
-      <text x="186" y="136" text-anchor="middle" fill="#b9bfcc" font-size="9.5">HTTPS · 80/443</text>
-      <line x1="108" y1="124" x2="138" y2="124" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+    <svg viewBox="0 0 700 292" width="100%" font-family="Be Vietnam Pro, sans-serif" font-size="11">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#121a2c"/></marker>
+        <marker id="r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c8102e"/></marker>
+      </defs>
+      <!-- browser + caddy -->
+      <rect x="4" y="140" width="104" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
+      <text x="56" y="164" text-anchor="middle" font-weight="700">Trình duyệt</text>
+      <text x="56" y="180" text-anchor="middle" fill="#6b7385" font-size="9.5">GV · SV (điện thoại)</text>
+      <rect x="140" y="140" width="92" height="56" rx="5" fill="#121a2c"/>
+      <text x="186" y="164" text-anchor="middle" font-weight="700" fill="#fff">Caddy</text>
+      <text x="186" y="180" text-anchor="middle" fill="#b9bfcc" font-size="9.5">HTTPS · 80/443</text>
+      <line x1="108" y1="168" x2="138" y2="168" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
       <!-- web -->
-      <rect x="266" y="20" width="132" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
-      <text x="332" y="44" text-anchor="middle" font-weight="700">web · Next.js 15</text>
-      <text x="332" y="60" text-anchor="middle" fill="#6b7385" font-size="9.5">TypeScript · Tailwind</text>
+      <rect x="266" y="30" width="132" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
+      <text x="332" y="54" text-anchor="middle" font-weight="700">web · Next.js (React)</text>
+      <text x="332" y="70" text-anchor="middle" fill="#6b7385" font-size="9.5">TypeScript · Tailwind</text>
+      <path d="M232,156 C252,156 246,58 264,58" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
       <!-- api -->
-      <rect x="266" y="150" width="132" height="56" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
-      <text x="332" y="174" text-anchor="middle" font-weight="700">api · FastAPI</text>
-      <text x="332" y="190" text-anchor="middle" fill="#6b7385" font-size="9.5">JWT · SM-2 · export</text>
-      <path d="M232,112 C250,112 248,48 264,48" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <path d="M232,136 C250,136 248,178 264,178" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <text x="232" y="200" fill="#c8102e" font-size="9" font-weight="600">/api/*</text>
-      <!-- db + redis -->
-      <rect x="436" y="150" width="96" height="56" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
-      <text x="484" y="174" text-anchor="middle" font-weight="700">PostgreSQL</text>
-      <text x="484" y="190" text-anchor="middle" fill="#6b7385" font-size="9.5">5 migration</text>
-      <rect x="436" y="20" width="96" height="56" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
-      <text x="484" y="44" text-anchor="middle" font-weight="700">Redis</text>
-      <text x="484" y="60" text-anchor="middle" fill="#6b7385" font-size="9.5">hàng đợi RQ</text>
-      <line x1="398" y1="178" x2="434" y2="178" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <path d="M398,160 C420,160 416,60 434,60" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <text x="440" y="112" fill="#6b7385" font-size="9">enqueue ↑</text>
+      <rect x="266" y="140" width="132" height="56" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
+      <text x="332" y="164" text-anchor="middle" font-weight="700">api · Node.js + Express</text>
+      <text x="332" y="180" text-anchor="middle" fill="#6b7385" font-size="9.5">REST · JWT · SM-2</text>
+      <line x1="232" y1="180" x2="264" y2="180" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="232" y="207" fill="#c8102e" font-size="9" font-weight="600">/api/*</text>
+      <!-- postgres -->
+      <rect x="266" y="230" width="132" height="52" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
+      <text x="332" y="252" text-anchor="middle" font-weight="700">PostgreSQL</text>
+      <text x="332" y="267" text-anchor="middle" fill="#6b7385" font-size="9.5">chỉ api đọc/ghi</text>
+      <line x1="332" y1="196" x2="332" y2="228" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <!-- ai service -->
+      <rect x="436" y="140" width="112" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
+      <text x="492" y="164" text-anchor="middle" font-weight="700">ai · FastAPI</text>
+      <text x="492" y="180" text-anchor="middle" fill="#6b7385" font-size="9.5">/jobs · /quiz · .apkg</text>
+      <line x1="398" y1="168" x2="434" y2="168" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="402" y="188" fill="#6b7385" font-size="8.5">HTTP</text>
+      <!-- redis -->
+      <rect x="452" y="230" width="96" height="52" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
+      <text x="500" y="252" text-anchor="middle" font-weight="700">Redis</text>
+      <text x="500" y="267" text-anchor="middle" fill="#6b7385" font-size="9.5">hàng đợi RQ</text>
+      <line x1="492" y1="196" x2="496" y2="228" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
       <!-- worker -->
-      <rect x="568" y="84" width="128" height="80" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
-      <text x="632" y="106" text-anchor="middle" font-weight="700">worker · RQ</text>
-      <text x="632" y="122" text-anchor="middle" fill="#6b7385" font-size="9.5">ai/speech</text>
-      <text x="632" y="136" text-anchor="middle" fill="#6b7385" font-size="9.5">ai/llm</text>
-      <text x="632" y="152" text-anchor="middle" fill="#6b7385" font-size="9.5">ffmpeg · yt-dlp</text>
-      <line x1="532" y1="48" x2="584" y2="82" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <line x1="584" y1="166" x2="534" y2="184" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
-      <!-- external -->
-      <rect x="560" y="200" width="136" height="46" rx="5" fill="#fbe9ec" stroke="#c8102e" stroke-width="1" stroke-dasharray="3 2"/>
-      <text x="628" y="219" text-anchor="middle" font-weight="700" font-size="10">Groq (API ngoài)</text>
-      <text x="628" y="234" text-anchor="middle" fill="#3d4659" font-size="9">Whisper · gpt-oss-120b/20b</text>
-      <line x1="632" y1="164" x2="632" y2="198" stroke="#c8102e" stroke-width="1.3" marker-end="url(#a)"/>
-      <text x="4" y="236" fill="#6b7385" font-size="9">File tải lên nằm trên volume dùng chung giữa api và worker.</text>
+      <rect x="584" y="140" width="112" height="56" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
+      <text x="640" y="160" text-anchor="middle" font-weight="700">worker · RQ</text>
+      <text x="640" y="175" text-anchor="middle" fill="#6b7385" font-size="9.5">ai/speech · ai/llm</text>
+      <text x="640" y="188" text-anchor="middle" fill="#6b7385" font-size="9.5">ffmpeg · yt-dlp</text>
+      <path d="M548,256 C580,256 630,240 636,198" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <!-- groq -->
+      <rect x="584" y="30" width="112" height="48" rx="5" fill="#fbe9ec" stroke="#c8102e" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="640" y="50" text-anchor="middle" font-weight="700" font-size="10">Groq (API ngoài)</text>
+      <text x="640" y="65" text-anchor="middle" fill="#3d4659" font-size="9">Whisper · gpt-oss</text>
+      <line x1="640" y1="140" x2="640" y2="80" stroke="#c8102e" stroke-width="1.3" marker-end="url(#r)"/>
+      <!-- worker reports back to api -->
+      <path d="M592,140 C560,100 430,100 392,138" fill="none" stroke="#c8102e" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#r)"/>
+      <text x="492" y="98" text-anchor="middle" fill="#c8102e" font-size="9" font-weight="600">tiến độ + kết quả · /internal</text>
+      <text x="4" y="248" fill="#6b7385" font-size="9">File tải lên nằm trên volume</text>
+      <text x="4" y="261" fill="#6b7385" font-size="9">dùng chung giữa api, ai, worker.</text>
     </svg>
-    <figcaption>Hình 1. Các dịch vụ khi deploy (một VPS, <code>docker compose</code>). Chỉ Caddy mở cổng ra Internet.</figcaption>
+    <figcaption>Hình 1. Các dịch vụ khi deploy (một VPS, <code>docker compose</code>). Chỉ Caddy mở cổng ra Internet; chỉ api chạm vào database.</figcaption>
   </figure>
 
   <h3>Luồng xử lý một bài giảng</h3>
-  <p>API lưu file (hoặc link), tạo bản ghi <code>Lecture</code> rồi đẩy job vào Redis và trả về ngay. Worker chạy job nền vì nhận dạng giọng nói có thể mất vài phút; frontend hỏi tiến độ mỗi 2 giây (<code>GET /lectures/{id}</code>).</p>
+  <p>API Express lưu file (hoặc link), tạo bản ghi <code>Lecture</code>, gọi <code>POST ai:/jobs</code> để service AI đẩy job vào Redis, rồi trả về ngay. Worker chạy job nền vì nhận dạng giọng nói có thể mất vài phút; mỗi bước nó báo tiến độ về API qua <code>/internal/lectures/{id}/status</code>, xong thì gửi toàn bộ kết quả qua <code>/internal/lectures/{id}/result</code> (có token nội bộ, Caddy chặn từ ngoài). API lưu kết quả trong một transaction. Frontend hỏi tiến độ mỗi 2 giây (<code>GET /lectures/{id}</code>).</p>
   <div class="pipeline keep">
     <div><span class="pct">0%</span><b>queued</b>vào hàng đợi</div>
     <div><span class="pct">10%</span><b>transcribing</b>phụ đề YouTube → hoặc Whisper → hoặc trích chữ PDF/PPTX</div>
@@ -182,10 +192,11 @@
   <h3>Lựa chọn công nghệ và lý do</h3>
   <table>
     <tr><th style="width:22%">Phần</th><th style="width:30%">Chọn</th><th>Lý do</th></tr>
-    <tr><td>Hàng đợi nền</td><td>RQ + Redis</td><td>Chỉ cần một hàng đợi và một loại job; RQ ít cấu hình hơn Celery nhiều. Job timeout 3 giờ cho bài giảng dài.</td></tr>
+    <tr><td>Backend</td><td>Node.js + Express 5 (TypeScript)</td><td>REST API, JWT, PostgreSQL; kiểm tra dữ liệu vào bằng zod; SQL thuần có tham số (không ORM) cho dễ đọc và dễ tối ưu truy vấn thống kê. Node chạy thẳng file <code>.ts</code>, không cần bước build.</td></tr>
+    <tr><td>Phần AI</td><td>FastAPI + RQ + Redis</td><td>Thư viện speech/LLM tốt nhất ở Python (yt-dlp, Whisper, genanki); tách thành service riêng để backend không phụ thuộc Python. RQ ít cấu hình hơn Celery; job timeout 3 giờ cho bài giảng dài.</td></tr>
     <tr><td>Lời giảng</td><td>Phụ đề YouTube trước, Whisper sau</td><td>Video có phụ đề (vi rồi en) thì dùng luôn: chính xác, có timestamp, không tốn API. Không có thì tải audio, nén Opus 16 kbps (~7 MB/giờ) và gửi Whisper <code>large-v3</code> trên Groq; có sẵn tuỳ chọn chạy PhoWhisper/Whisper trên GPU riêng.</td></tr>
     <tr><td>LLM</td><td>Client OpenAI-compatible tự viết, không LangChain</td><td>Đổi nhà cung cấp chỉ bằng biến môi trường (Groq, OpenAI, Gemini, Ollama tự host). Tự động chuyển model dự phòng khi hết hạn mức ngày.</td></tr>
-    <tr><td>Lưu trữ</td><td>PostgreSQL + volume Docker</td><td>Đủ cho quy mô một trường, tự host được; SQLite dùng cho test và chạy dev không cần Docker.</td></tr>
+    <tr><td>Lưu trữ</td><td>PostgreSQL + volume Docker</td><td>Đủ cho quy mô một trường, tự host được. Test và chạy dev không Docker dùng PGlite (chính Postgres, chạy trong tiến trình Node) nên cùng một SQL ở mọi nơi.</td></tr>
     <tr><td>Frontend</td><td>Next.js 15 App Router, Tailwind v4</td><td>Giao diện “lịch blốc” (giấy trắng, mực xanh đen, đỏ lịch) tối ưu cho điện thoại; tôn trọng <i>prefers-reduced-motion</i>.</td></tr>
     <tr><td>Deploy</td><td>Docker Compose + Caddy</td><td>Một lệnh dựng cả hệ thống; Caddy tự cấp và gia hạn HTTPS; web và API chung tên miền nên không phát sinh CORS.</td></tr>
   </table>
@@ -210,7 +221,7 @@
         <li><b>Làm sạch</b> từ đệm (“ờ”, “à”…) và <b>chia đoạn</b> ~4.000 ký tự, giữ mốc thời gian đầu mỗi đoạn.</li>
         <li><b>Tóm tắt</b> map-reduce: tóm từng đoạn rồi gộp; bài ngắn gọi một lần.</li>
         <li><b>Flashcard</b> ở chế độ JSON, kiểm tra từng thẻ bằng Pydantic (thẻ lỗi bị loại, không làm hỏng cả đoạn), lọc trùng bằng độ giống chuỗi. JSON hỏng thì hỏi lại một lần.</li>
-        <li><b>Trắc nghiệm</b>: lập “kế hoạch” số câu theo (kiểu, độ khó), phân đều cho các đoạn; một lượt gọi riêng bắt model <b>giải lại mà không thấy đáp án</b> (theo lô 10 câu), câu nào kết quả khác đáp án gốc thì loại; xáo phương án để đáp án không dồn vào A.</li>
+        <li><b>Trắc nghiệm</b>: lập “kế hoạch” số câu theo (kiểu, độ khó), phân đều cho các đoạn; một lượt gọi riêng bắt model <b>giải lại mà không thấy đáp án</b> (theo lô 10 câu), câu nào model giải ra đáp án khác, hoặc chỉ ra là sai đề (không có / nhiều đáp án đúng) thì loại; với chi tiết riêng của bài mà model không thể biết, nó được phép trả lời “không chắc” và câu được giữ; xáo phương án để đáp án không dồn vào A.</li>
       </ul>
     </div>
   </div>
@@ -220,7 +231,7 @@
 <!-- ===================== 4. API ===================== -->
 <section>
   <h2><span class="n">04</span> API</h2>
-  <p>Viết hợp đồng trước: schema Pydantic trong <code>backend/app/schemas.py</code> sinh ra <code>docs/openapi.json</code>; CI chạy <code>export_openapi --check</code> và báo lỗi nếu file cũ hơn code. Xác thực bằng JWT (HS256, hạn 7 ngày, mật khẩu băm PBKDF2-SHA256 200.000 vòng). Sinh viên chỉ thấy bài đã được giao cho lớp mình; câu trắc nghiệm trả về cho sinh viên không kèm đáp án cho đến khi nộp. Swagger có tại <code>/docs</code> khi chạy local.</p>
+  <p>Viết hợp đồng trước: <code>docs/openapi.json</code> có từ tuần đầu nên frontend và backend làm song song được. Một test của backend gọi thử mọi endpoint trong file này và báo lỗi nếu thiếu route. Xác thực bằng JWT (HS256, hạn 7 ngày; mật khẩu băm PBKDF2-SHA256 200.000 vòng, so sánh thời gian hằng). Mọi body được kiểm tra bằng zod; lỗi trả về <code>{detail}</code> tiếng Việt để hiện thẳng lên giao diện. Sinh viên chỉ thấy bài đã được giao cho lớp mình; câu trắc nghiệm trả về cho sinh viên không kèm đáp án cho đến khi nộp.</p>
   <table>
     <tr><th style="width:10%"></th><th style="width:38%">Endpoint</th><th>Chức năng</th></tr>
     <tr><td><span class="method POST">POST</span></td><td class="mono">/auth/register · /auth/login</td><td>Đăng ký (GV/SV), đăng nhập, nhận JWT. Có thể khoá đăng ký GV trên server công khai.</td></tr>
@@ -242,7 +253,7 @@
 <!-- ===================== 5. Dữ liệu ===================== -->
 <section>
   <h2><span class="n">05</span> Dữ liệu</h2>
-  <p>SQLAlchemy 2.0, schema quản lý bằng Alembic (5 migration, chạy tự động khi API khởi động). CI chạy <code>alembic check</code> để phát hiện trường hợp sửa model mà quên tạo migration.</p>
+  <p>Schema viết bằng SQL thuần trong <code>backend/migrations/*.sql</code>; API tự áp các file chưa chạy khi khởi động và ghi vào bảng <code>schema_migrations</code>. Khoá ngoại có <code>ON DELETE CASCADE</code> nên xoá bài giảng sẽ xoá kèm thẻ, câu hỏi, lịch sử ôn.</p>
   <table>
     <tr><th style="width:20%">Bảng</th><th style="width:44%">Cột chính</th><th>Ghi chú</th></tr>
     <tr><td class="mono">users</td><td>email (unique), name, password_hash, role</td><td>role = teacher | student</td></tr>
@@ -280,22 +291,24 @@
 <section>
   <h2><span class="n">07</span> Kiểm thử</h2>
   <div class="stats">
-    <div class="stat"><b>18</b><span>test tự động (pytest), đều pass</span></div>
-    <div class="stat"><b>2</b><span>job CI trên GitHub Actions mỗi lần push</span></div>
+    <div class="stat"><b>29</b><span>test tự động (Vitest 10 + pytest 19), đều pass</span></div>
+    <div class="stat"><b>3</b><span>job CI trên GitHub Actions mỗi lần push</span></div>
     <div class="stat"><b>84 s</b><span>bài YouTube thật → 16 thẻ + 5 câu</span></div>
-    <div class="stat"><b>8 s</b><span>audio 40 s tải lên → Whisper → 6 thẻ</span></div>
+    <div class="stat"><b>~9 s</b><span>audio 40 s tải lên → Whisper → 6 thẻ + 3 câu</span></div>
   </div>
   <h3>Tự động</h3>
   <table>
     <tr><th style="width:30%">Nhóm</th><th>Nội dung kiểm tra</th></tr>
-    <tr><td>AI (11 test)</td><td>WER; làm sạch từ đệm không cắt nhầm từ thật; validate đáp án trắc nghiệm; chuẩn hoá câu đúng/sai mà vẫn giữ đáp án; lọc trùng; lập kế hoạch và lấp chỗ thiếu câu hỏi; xáo phương án vẫn giữ đáp án đúng; chuyển model dự phòng khi hết hạn mức ngày; hỏi lại khi JSON hỏng; engine Whisper qua API (giả lập HTTP).</td></tr>
-    <tr><td>Backend (7 test)</td><td>SM-2; luồng đầy đủ GV tạo lớp → SV vào lớp → tải bài → bài chưa giao bị ẩn → sửa thẻ → giao → SV ôn và làm trắc nghiệm → thống kê → xuất CSV/.apkg; tải slide PPTX lấy đúng chữ theo trang; sinh trắc nghiệm theo tuỳ chọn và từ chối tuỳ chọn sai; giao một bài cho 2 lớp, không cho giao vào lớp của GV khác, thu hồi; khoá đăng ký GV. Test chạy migration Alembic thật trên SQLite.</td></tr>
-    <tr><td>CI</td><td><code>ruff</code> (lint + format), <code>pytest</code>, hợp đồng OpenAPI khớp code, model khớp migration; frontend: ESLint, <code>tsc --noEmit</code>, <code>next build</code>.</td></tr>
+    <tr><td>AI – pytest (19 test)</td><td>WER; làm sạch từ đệm không cắt nhầm từ thật; validate đáp án trắc nghiệm; chuẩn hoá câu đúng/sai mà vẫn giữ đáp án; lọc trùng; lập kế hoạch và lấp chỗ thiếu câu hỏi; xáo phương án vẫn giữ đáp án đúng; chuyển model dự phòng khi hết hạn mức ngày; hỏi lại khi JSON hỏng; bước kiểm tra chỉ loại câu bị giải ra đáp án khác hoặc sai đề; engine Whisper qua API (giả lập HTTP). Service: pipeline báo đúng thứ tự tiến độ rồi gửi kết quả; slide PPTX trích đúng chữ theo trang; lỗi được báo về API; endpoint <code>/quiz</code> tôn trọng tuỳ chọn; file <code>.apkg</code> hợp lệ; bắt buộc token nội bộ.</td></tr>
+    <tr><td>Backend – Vitest + Supertest (10 test)</td><td>SM-2; luồng đầy đủ GV tạo lớp → SV vào lớp → tải bài → worker báo kết quả → bài chưa giao bị ẩn → sửa thẻ → giao → SV ôn và làm trắc nghiệm → thống kê → xuất CSV/.apkg; tải file và kiểm tra nguồn; tuỳ chọn trắc nghiệm đến được worker; sinh thêm/thay câu hỏi; giao một bài cho 2 lớp, không cho giao vào lớp của GV khác, thu hồi; đăng nhập, khoá đăng ký GV, đọc được mật khẩu băm từ backend cũ; endpoint nội bộ cần token; dịch vụ AI sập thì bài báo lỗi rõ; từ chối JWT_SECRET yếu; mọi endpoint trong hợp đồng OpenAPI đều có route. Test chạy migration thật trên PGlite (Postgres trong tiến trình), service AI được thay bằng bản giả.</td></tr>
+    <tr><td>CI</td><td>backend: <code>tsc --noEmit</code>, Vitest; AI: <code>ruff</code> (lint + format), <code>pytest</code>; frontend: ESLint, <code>tsc --noEmit</code>, <code>next build</code>.</td></tr>
   </table>
   <h3>Thủ công / tích hợp</h3>
   <ul>
     <li><b>Dữ liệu thật:</b> video lịch sử tiếng Việt <span class="mono">AMqpBURO7ds</span> (5 câu, độ khó trộn, đủ 3 kiểu): sẵn sàng sau 84 giây với 16 flashcard và 5 câu hỏi đúng nội dung. Vì video không có nội dung tính toán, hệ thống tự thay câu tính toán bằng câu lý thuyết như thiết kế.</li>
-    <li><b>Stack production chạy tại máy</b> (<code>https://localhost</code>, Caddy tự ký): chỉ cổng 80/443 mở ra ngoài; HTTP chuyển sang HTTPS (308); có header HSTS, nosniff; API từ chối khởi động với <code>JWT_SECRET</code> yếu; tải audio qua <code>/api</code> → Whisper nhận dạng 40 giây audio trong 1,4 giây → Groq sinh 6 thẻ; script sao lưu tạo được bản dump database và file nén thư mục upload.</li>
+    <li><b>Stack production chạy tại máy</b> (<code>https://localhost</code>, Caddy tự ký, đủ 7 dịch vụ): chỉ cổng 80/443 mở ra ngoài; HTTP chuyển sang HTTPS (308); có header HSTS, nosniff; <code>/api/internal/*</code> bị chặn từ ngoài (404); API từ chối khởi động với <code>JWT_SECRET</code> yếu. Hai lần tải cùng một đoạn audio 40 giây qua <code>/api</code>: Express → FastAPI → Redis → worker → Whisper (Groq) nhận dạng đúng nội dung tiếng Việt → Groq sinh 6 thẻ và đủ 3 câu hỏi, sẵn sàng sau 8–10 giây; file gốc phát lại được và hỗ trợ tua (HTTP 206). Script sao lưu tạo được bản dump database và file nén thư mục upload.</li>
+    <li><b>Nâng cấp từ database cũ:</b> dựng lại đúng schema của phiên bản trước (backend Python) có dữ liệu mẫu, rồi cho backend Node chạy migration: bài đã giao được chuyển thành bản ghi giao lớp, bài nháp giữ nguyên, chạy lần hai không lỗi.</li>
+    <li><b>Lỗi phát hiện nhờ chạy thật và đã sửa:</b> bước kiểm tra đáp án từng loại hết câu hỏi về chi tiết bài giảng (có lần ra 0 câu); PGlite không tự tạo thư mục dữ liệu khi chạy dev lần đầu; quy tắc chặn <code>/api/internal</code> của Caddy đặt sai thứ tự.</li>
     <li><b>Giao diện:</b> chụp màn hình bằng Playwright ở 1440 px và 390 px cho từng tính năng mới; sửa các lỗi review phát hiện (vòng focus sai màu, thẻ đầu không xé, tiêu đề bị cắt).</li>
   </ul>
 </section>
@@ -306,7 +319,7 @@
   <table>
     <tr><th style="width:36%">Hạn chế</th><th>Hướng xử lý</th></tr>
     <tr><td>Chưa đo WER trên một bộ dữ liệu bài giảng có nhãn chuẩn; mới có công cụ đo.</td><td>Ghi âm/gán nhãn 10–20 phút bài giảng thật, so sánh phụ đề YouTube, Whisper large-v3 và PhoWhisper.</td></tr>
-    <tr><td>Câu trắc nghiệm được kiểm tra bằng chính một LLM; vẫn có thể sai hoặc mơ hồ.</td><td>Giảng viên luôn duyệt trước khi giao; thu thập tỉ lệ câu bị sửa/xoá làm chỉ số chất lượng.</td></tr>
+    <tr><td>Câu trắc nghiệm được kiểm tra bằng chính một LLM và bước giải lại không đọc bài giảng, nên chủ yếu bắt được lỗi tính toán; câu về chi tiết bài vẫn có thể sai hoặc mơ hồ.</td><td>Giảng viên luôn duyệt trước khi giao; thu thập tỉ lệ câu bị sửa/xoá làm chỉ số chất lượng.</td></tr>
     <tr><td>Gói miễn phí Groq chỉ đủ khoảng 5–6 bài giảng/ngày/model.</td><td>Nâng gói trả phí hoặc trỏ sang LLM tự host (Ollama/vLLM) chỉ bằng biến môi trường.</td></tr>
     <tr><td>YouTube có thể chặn IP của VPS, khiến bài dán link bị lỗi.</td><td>Tải file trực tiếp; hoặc cấu hình cookie/proxy cho yt-dlp.</td></tr>
     <tr><td>Âm thanh tối đa ~3 giờ/bài (25 MB sau nén) với Whisper qua API.</td><td>Cắt audio thành nhiều đoạn rồi ghép timestamp.</td></tr>
@@ -321,9 +334,9 @@
   <h2><span class="n">09</span> Bảng phân công</h2>
   <table>
     <tr><th style="width:24%">Thành viên</th><th>Nhiệm vụ và sản phẩm</th><th style="width:14%; text-align:right">Đóng góp</th></tr>
-    <tr><td><b>Nguyễn Thái Sơn</b><br><span class="muted small">Speech</span></td><td>Whisper/PhoWhisper, tải audio từ YouTube (yt-dlp), đo độ chính xác nhận dạng (WER). <span class="muted">Sản phẩm: <code>ai/speech/</code> (transcribe, captions, wer), engine Whisper qua API, nén Opus.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Thái Sơn}}%</td></tr>
+    <tr><td><b>Nguyễn Thái Sơn</b><br><span class="muted small">Speech</span></td><td>Whisper/PhoWhisper, tải audio từ YouTube (yt-dlp), đo độ chính xác nhận dạng (WER). <span class="muted">Sản phẩm: <code>ai/speech/</code> (transcribe, captions, wer), engine Whisper qua API, nén Opus, <code>ai/service/</code> (FastAPI nội bộ, pipeline).</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Thái Sơn}}%</td></tr>
     <tr><td><b>Lương Hoàng Phúc</b><br><span class="muted small">LLM</span></td><td>Chunking, prompt tóm tắt, sinh flashcard, kiểm tra JSON đầu ra, đánh giá chất lượng. <span class="muted">Sản phẩm: <code>ai/llm/</code> (clean, generate, schemas), sinh trắc nghiệm theo kế hoạch + bước giải lại, xử lý hạn mức.</span></td><td style="text-align:right" class="mono">{{c:Lương Hoàng Phúc}}%</td></tr>
-    <tr><td><b>Nguyễn Công Phước</b><br><span class="muted small">Backend</span></td><td>FastAPI, hàng đợi xử lý nền (RQ, vì chạy speech-to-text mất vài phút), database lưu bài giảng và thẻ, thuật toán spaced repetition (SM-2). <span class="muted">Sản phẩm: <code>backend/</code>, migration, hợp đồng OpenAPI, giao bài nhiều lớp, xuất Anki.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Công Phước}}%</td></tr>
+    <tr><td><b>Nguyễn Công Phước</b><br><span class="muted small">Backend</span></td><td>Node.js + Express, hàng đợi xử lý nền (RQ, vì chạy speech-to-text mất vài phút), database lưu bài giảng và thẻ, thuật toán spaced repetition (SM-2). <span class="muted">Sản phẩm: <code>backend/</code> (REST API, JWT, migration SQL, thống kê, xuất CSV), hợp đồng OpenAPI, giao bài nhiều lớp, endpoint nhận kết quả từ worker.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Công Phước}}%</td></tr>
     <tr><td><b>Nguyễn Hữu Lan</b><br><span class="muted small">Frontend + Deploy</span></td><td>Upload file, thanh tiến trình, trang tóm tắt, giao diện lật thẻ, deploy. <span class="muted">Sản phẩm: <code>frontend/</code>, Docker, Caddy, CI, sao lưu.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Hữu Lan}}%</td></tr>
     <tr class="total"><td colspan="2">Tổng</td><td style="text-align:right" class="mono">{{c_total}}%</td></tr>
   </table>
