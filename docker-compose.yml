@@ -1,3 +1,9 @@
+# web (Next.js) -> api (Node/Express: REST, auth, Postgres) -> ai (FastAPI, internal) -> Redis -> worker (RQ)
+# The worker reports progress and results back to api; only api touches the database.
+x-ai-env: &ai-env
+  REDIS_URL: redis://redis:6379
+  API_INTERNAL_URL: http://api:8000
+
 services:
   db:
     image: postgres:16-alpine
@@ -12,31 +18,35 @@ services:
     image: redis:7-alpine
 
   api:
-    build: { context: ., dockerfile: backend/Dockerfile }
+    build: backend
     env_file: [{ path: .env, required: false }] # without .env everything runs on the mock engines
     environment:
-      DATABASE_URL: postgresql+psycopg://lc:lc@db:5432/lc
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgres://lc:lc@db:5432/lc
+      AI_URL: http://ai:8001
       UPLOAD_DIR: /data/uploads
     volumes: [uploads:/data/uploads]
     ports: ["8000:8000"]
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
-      redis: { condition: service_started }
+      ai: { condition: service_started }
+
+  ai:
+    build: { context: ., dockerfile: ai/Dockerfile }
+    env_file: [{ path: .env, required: false }]
+    environment: *ai-env
+    volumes: [uploads:/data/uploads] # reads the files api saved
+    restart: unless-stopped
+    depends_on: [redis]
 
   worker:
-    build: { context: ., dockerfile: backend/Dockerfile }
+    build: { context: ., dockerfile: ai/Dockerfile }
     command: ["rq", "worker", "--url", "redis://redis:6379"]
-    restart: unless-stopped
-    env_file: [{ path: .env, required: false }] # without .env everything runs on the mock engines
-    environment:
-      DATABASE_URL: postgresql+psycopg://lc:lc@db:5432/lc
-      REDIS_URL: redis://redis:6379
-      UPLOAD_DIR: /data/uploads
+    env_file: [{ path: .env, required: false }]
+    environment: *ai-env
     volumes: [uploads:/data/uploads]
-    depends_on:
-      api: { condition: service_started } # api runs the migrations
+    restart: unless-stopped
+    depends_on: [redis]
 
   web:
     build:

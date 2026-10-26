@@ -2,6 +2,11 @@
 {$DOMAIN} {
 	encode zstd gzip
 
+	# Worker-to-API callbacks stay on the Docker network (more specific than /api/*, so it wins).
+	handle /api/internal/* {
+		respond 404
+	}
+
 	# API: the frontend is built with NEXT_PUBLIC_API_URL=/api, so the browser never leaves this origin.
 	handle_path /api/* {
 		reverse_proxy api:8000

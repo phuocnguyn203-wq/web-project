@@ -7,7 +7,9 @@ x-logging: &logging
   driver: json-file
   options: { max-size: "10m", max-file: "3" }
 
-x-db-url: &db-url postgresql+psycopg://lc:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/lc
+x-internal: &internal
+  APP_ENV: production # api and ai refuse to start with placeholder secrets
+  INTERNAL_TOKEN: ${INTERNAL_TOKEN:?set INTERNAL_TOKEN in .env}
 
 services:
   db:
@@ -22,16 +24,17 @@ services:
   api:
     ports: !reset []
     environment:
-      DATABASE_URL: *db-url
-      APP_ENV: production # refuses to start with a weak JWT_SECRET
+      <<: *internal
+      DATABASE_URL: postgres://lc:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/lc
       CORS_ORIGINS: https://${DOMAIN:?set DOMAIN in .env}
-    command: ["sh", "-c", "alembic -c backend/alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips '*'"]
+    logging: *logging
+
+  ai:
+    environment: *internal
     logging: *logging
 
   worker:
-    environment:
-      DATABASE_URL: *db-url
-      APP_ENV: production
+    environment: *internal
     logging: *logging
 
   web:

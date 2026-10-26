@@ -4,21 +4,26 @@ on:
   pull_request:
 
 jobs:
-  python:
+  backend: # Node/Express API: typecheck + API tests on an in-process Postgres (PGlite)
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm, cache-dependency-path: backend/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  ai: # FastAPI service + speech/LLM pipeline
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install -e ".[dev]"
-      - run: ruff check ai backend && ruff format --check ai backend
+      - run: ruff check ai && ruff format --check ai
       - run: pytest -q
-      - name: OpenAPI contract is up to date
-        env: { PYTHONPATH: ".:backend", DATABASE_URL: "sqlite:///:memory:", UPLOAD_DIR: /tmp/up }
-        run: python -m app.export_openapi --check
-      - name: Models match migrations (run `alembic revision --autogenerate` if this fails)
-        env: { PYTHONPATH: ".:backend", DATABASE_URL: "sqlite:////tmp/ci.db" }
-        run: alembic -c backend/alembic.ini upgrade head && alembic -c backend/alembic.ini check
 
   frontend:
     runs-on: ubuntu-latest

@@ -1,9 +1,11 @@
 # Deploy LectureCards lên một VPS
 
-Toàn bộ hệ thống (web, API, worker, Postgres, Redis) chạy bằng Docker trên **một máy chủ**. Caddy đứng trước, tự xin và gia hạn chứng chỉ HTTPS. Bên ngoài chỉ thấy cổng 80/443; API nằm ở `https://<tên-miền>/api`.
+Toàn bộ hệ thống (web, API Node.js, service AI, worker, Postgres, Redis) chạy bằng Docker trên **một máy chủ**. Caddy đứng trước, tự xin và gia hạn chứng chỉ HTTPS. Bên ngoài chỉ thấy cổng 80/443; API nằm ở `https://<tên-miền>/api`.
 
 ```
-Internet ──443──▶ Caddy ─┬─ /api/* ─▶ api (FastAPI) ──▶ Postgres, Redis ◀── worker (RQ)
+Internet ──443──▶ Caddy ─┬─ /api/* ─▶ api (Node.js/Express) ──▶ Postgres
+                         │               └──▶ ai (FastAPI) ──▶ Redis ──▶ worker (RQ) ──┐
+                         │                    ▲ kết quả qua /internal (không ra Internet) ─┘
                          └─ còn lại ─▶ web (Next.js)
 ```
 
@@ -38,6 +40,7 @@ cd /opt/lecturecards
 cp .env.example .env
 openssl rand -hex 32   # dán vào JWT_SECRET
 openssl rand -hex 24   # dán vào POSTGRES_PASSWORD
+openssl rand -hex 24   # dán vào INTERNAL_TOKEN
 nano .env
 ```
 
@@ -49,6 +52,7 @@ Những dòng phải sửa trong `.env`:
 DOMAIN=lecturecards.ten-ban.com
 POSTGRES_PASSWORD=<chuỗi hex vừa tạo>
 JWT_SECRET=<chuỗi hex 64 ký tự vừa tạo>
+INTERNAL_TOKEN=<chuỗi hex vừa tạo>      # api, ai và worker dùng chung để gọi nhau
 ALLOW_TEACHER_SIGNUP=1            # mở tạm để tạo tài khoản giảng viên, bước 5 sẽ đóng lại
 
 SPEECH_ENGINE=api                 # nhận dạng giọng nói thật cho file tải lên (Groq Whisper, cùng key)
@@ -59,7 +63,7 @@ LLM_MODEL=openai/gpt-oss-120b
 LLM_FALLBACK_MODELS=openai/gpt-oss-20b
 ```
 
-`CORS_ORIGINS` không cần sửa: bản production tự đặt theo `DOMAIN`. Nếu `JWT_SECRET` còn là chuỗi mẫu hoặc ngắn hơn 32 ký tự, API sẽ **từ chối khởi động**. Đây là chủ ý, để không chạy production với secret yếu.
+`CORS_ORIGINS` không cần sửa: bản production tự đặt theo `DOMAIN`. Nếu `JWT_SECRET` còn là chuỗi mẫu hoặc ngắn hơn 32 ký tự, hay thiếu `INTERNAL_TOKEN`, hệ thống sẽ **từ chối khởi động**. Đây là chủ ý, để không chạy production với secret yếu.
 
 ## 4. Chạy
 
@@ -68,7 +72,7 @@ alias dc='docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml
 echo "alias dc='docker compose -f docker-compose.yml -f deploy/docker-compose.prod.yml'" >> ~/.bashrc
 
 dc up -d --build      # lần đầu mất 5–10 phút
-dc ps                 # 6 dịch vụ đều "running"
+dc ps                 # 7 dịch vụ đều "running"
 ```
 
 Mở `https://lecturecards.ten-ban.com`. Lần đầu Caddy cần khoảng 30 giây để lấy chứng chỉ. Nếu trình duyệt báo lỗi HTTPS, xem `dc logs caddy`; nguyên nhân thường là DNS chưa trỏ đúng hoặc cổng 80 bị chặn.
@@ -108,7 +112,7 @@ dc exec -T db pg_restore -U lc -d lc --clean --if-exists < backups/db-YYYYMMDD-H
 | Việc | Lệnh |
 | --- | --- |
 | Cập nhật code mới | `git pull && dc up -d --build` (migration tự chạy khi API khởi động) |
-| Xem lỗi xử lý bài giảng | `dc logs -f worker` |
+| Xem lỗi xử lý bài giảng | `dc logs -f worker` (và `dc logs -f ai`) |
 | Xem lỗi API | `dc logs -f api` |
 | Khởi động lại | `dc restart` |
 | Dung lượng ổ đĩa | `df -h` và `docker system df`. Dọn image cũ: `docker image prune -f` |
