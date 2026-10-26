@@ -149,3 +149,10 @@ def test_one_lecture_assigned_to_many_classes():
     assert c.put(url, json={"class_ids": [a["id"]]}, headers=t).json()["class_ids"] == [a["id"]]
     assert c.get(f"/lectures/{lid}", headers=sb).status_code == 403  # taken back from B
     assert c.get(f"/lectures/{lid}", headers=sa).status_code == 200
+
+
+def test_teacher_signup_can_be_closed(monkeypatch):
+    monkeypatch.setenv("ALLOW_TEACHER_SIGNUP", "0")
+    body = {"name": "x", "password": "secret1"}
+    assert c.post("/auth/register", json={**body, "email": "t9@x.vn", "role": "teacher"}).status_code == 403
+    assert c.post("/auth/register", json={**body, "email": "s9@x.vn", "role": "student"}).status_code == 200

@@ -53,6 +53,9 @@ def health():
 
 @app.post("/auth/register", response_model=s.TokenOut, tags=["auth"])
 def register(body: s.RegisterIn, db: Session = Depends(get_db)):
+    # Teachers spend the LLM quota: on a public server, close teacher sign-up once your own account exists.
+    if body.role == "teacher" and os.getenv("ALLOW_TEACHER_SIGNUP", "1") != "1":
+        raise HTTPException(403, "Đăng ký tài khoản giảng viên đang đóng. Liên hệ quản trị viên.")
     if db.scalar(select(m.User).where(m.User.email == body.email)):
         raise HTTPException(409, "Email đã được sử dụng")
     user = m.User(email=body.email, name=body.name, role=body.role, password_hash=hash_password(body.password))

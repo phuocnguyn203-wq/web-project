@@ -13,6 +13,8 @@ from .db import get_db
 from .models import User
 
 SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me")
+if os.getenv("APP_ENV") == "production" and (len(SECRET) < 32 or "change-me" in SECRET):
+    raise RuntimeError("JWT_SECRET must be a random string of 32+ chars in production")
 _bearer = HTTPBearer(auto_error=False)
 
 
