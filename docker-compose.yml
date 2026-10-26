@@ -13,7 +13,7 @@ services:
 
   api:
     build: { context: ., dockerfile: backend/Dockerfile }
-    env_file: .env
+    env_file: [{ path: .env, required: false }] # without .env everything runs on the mock engines
     environment:
       DATABASE_URL: postgresql+psycopg://lc:lc@db:5432/lc
       REDIS_URL: redis://redis:6379
@@ -29,7 +29,7 @@ services:
     build: { context: ., dockerfile: backend/Dockerfile }
     command: ["rq", "worker", "--url", "redis://redis:6379"]
     restart: unless-stopped
-    env_file: .env
+    env_file: [{ path: .env, required: false }] # without .env everything runs on the mock engines
     environment:
       DATABASE_URL: postgresql+psycopg://lc:lc@db:5432/lc
       REDIS_URL: redis://redis:6379

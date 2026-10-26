@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Báo cáo LectureCards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #121a2c; --ink-2: #3d4659; --ink-3: #6b7385; --rule: #dfe1e6; --panel: #f3f4f6;
+    --red: #c8102e; --red-soft: #fbe9ec; --green: #1f7a4a;
+  }
+  @page { size: A4; margin: 17mm 17mm 18mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font: 10pt/1.55 "Be Vietnam Pro", system-ui, sans-serif; color: var(--ink); background: #fff; }
+  h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 15pt; margin: 0 0 8pt; padding-bottom: 6pt; border-bottom: 3px double var(--ink); display: flex; gap: 10pt; align-items: baseline; break-after: avoid; }
+  h2 .n { color: var(--red); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 11pt; margin: 12pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 6pt; }
+  ul { margin: 0 0 6pt; padding-left: 15pt; }
+  li { margin: 0 0 2pt; }
+  section { margin-bottom: 16pt; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 8.4pt; }
+  code { background: var(--panel); padding: 0.5pt 3pt; border-radius: 2pt; }
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 8pt; font-size: 8.9pt; break-inside: auto; }
+  th { text-align: left; font-size: 7.6pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; padding: 5pt 6pt; border-bottom: 1.5px solid var(--ink); }
+  td { padding: 4.5pt 6pt; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tr { break-inside: avoid; }
+  .muted { color: var(--ink-3); }
+  .small { font-size: 8.6pt; }
+  .red { color: var(--red); }
+  .page-break { break-before: page; }
+  .keep { break-inside: avoid; }
+
+  /* cover block */
+  .masthead { display: grid; grid-template-columns: 1fr auto; gap: 16pt; align-items: end; padding-bottom: 10pt; border-bottom: 3px double var(--ink); }
+  .kicker { font-size: 8pt; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); font-weight: 700; }
+  .masthead h1 { font-size: 26pt; font-weight: 700; margin-top: 4pt; }
+  .masthead .sub { font-size: 11pt; color: var(--ink-2); margin-top: 4pt; max-width: 120mm; }
+  .datebox { text-align: center; border: 1.5px solid var(--ink); border-radius: 4pt; overflow: hidden; width: 30mm; }
+  .datebox .m { background: var(--red); color: #fff; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.1em; padding: 3pt 0; }
+  .datebox .d { font-size: 26pt; font-weight: 700; line-height: 1.1; padding: 3pt 0 0; }
+  .datebox .y { font-size: 8pt; color: var(--ink-3); padding-bottom: 4pt; }
+  .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 18pt; margin: 10pt 0 14pt; font-size: 9pt; }
+  .facts div { display: grid; grid-template-columns: 32mm 1fr; padding: 4pt 0; border-bottom: 1px solid var(--rule); }
+  .facts dt { color: var(--ink-3); font-weight: 600; }
+  .facts dd { margin: 0; overflow-wrap: anywhere; }
+  .facts .wide { grid-column: 1 / -1; grid-template-columns: 32mm 1fr; }
+  .todo { color: var(--red); background: var(--red-soft); padding: 0 3pt; border-radius: 2pt; font-weight: 600; word-break: normal; }
+
+  .callout { border-left: 3px solid var(--red); background: #fafafa; padding: 6pt 10pt; margin: 6pt 0 10pt; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14pt; }
+  .stat { border-top: 2px solid var(--ink); padding-top: 4pt; }
+  .stat b { display: block; font-size: 18pt; line-height: 1.1; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10pt; margin: 8pt 0 10pt; }
+  .stats span { font-size: 8.3pt; color: var(--ink-2); }
+
+  figure { margin: 8pt 0 10pt; break-inside: avoid; }
+  figcaption { font-size: 8.3pt; color: var(--ink-3); margin-top: 4pt; }
+  figure img { width: 100%; border: 1px solid var(--rule); border-radius: 3pt; display: block; }
+  .shots { display: grid; grid-template-columns: 1fr 52mm; gap: 10pt; align-items: start; }
+
+  .pipeline { display: flex; gap: 0; margin: 6pt 0 10pt; font-size: 8.3pt; }
+  .pipeline div { flex: 1; border: 1px solid var(--ink); border-left: none; padding: 5pt 6pt; position: relative; }
+  .pipeline div:first-child { border-left: 1px solid var(--ink); border-radius: 3pt 0 0 3pt; }
+  .pipeline div:last-child { border-radius: 0 3pt 3pt 0; background: var(--ink); color: #fff; }
+  .pipeline b { display: block; font-size: 8.8pt; }
+  .pipeline .pct { color: var(--red); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pipeline div:last-child .pct { color: #ff9aa9; }
+
+  .method { font-family: "JetBrains Mono", monospace; font-size: 7.6pt; font-weight: 600; padding: 0.5pt 4pt; border-radius: 2pt; display: inline-block; min-width: 34pt; text-align: center; }
+  .GET { background: #e8f1ec; color: var(--green); } .POST { background: #e9eefb; color: #2346a8; }
+  .PUT { background: #fdf3e2; color: #8a5a00; } .DELETE { background: var(--red-soft); color: var(--red); }
+
+  .sign td { height: 22mm; }
+  .sign .line { border-bottom: 1px dotted var(--ink-3); height: 14mm; }
+  .total td { font-weight: 700; border-top: 1.5px solid var(--ink); border-bottom: none; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 0. Masthead ===================== -->
+<header class="masthead">
+  <div>
+    <div class="kicker">Báo cáo đồ án · Nhóm 4 người</div>
+    <h1>LectureCards</h1>
+    <p class="sub">Biến bài giảng tiếng Việt (video, audio, YouTube, PDF/slide) thành tóm tắt, flashcard và câu hỏi trắc nghiệm; sinh viên ôn theo lịch lặp lại ngắt quãng SM-2, mỗi thẻ gắn đúng giây trong bài giảng.</p>
+  </div>
+  <div class="datebox"><div class="m">THÁNG {{month}}</div><div class="d">{{day}}</div><div class="y">{{year}}</div></div>
+</header>
+
+<dl class="facts">
+  <div class="wide"><dt>Mã nguồn</dt><dd class="mono">{{repo_url}}</dd></div>
+  <div><dt>Link deploy</dt><dd class="mono">{{deploy_url}}</dd></div>
+  <div><dt>Tài khoản giảng viên</dt><dd class="mono">{{demo_teacher}}</dd></div>
+  <div><dt>Tài khoản sinh viên</dt><dd class="mono">{{demo_student}}</dd></div>
+  <div><dt>Video dự phòng</dt><dd class="mono">{{video_url}}</dd></div>
+  <div class="wide"><dt>Chạy thử tại máy</dt><dd class="mono">docker compose up --build</dd></div>
+</dl>
+
+<!-- ===================== 1. Bài toán ===================== -->
+<section>
+  <h2><span class="n">01</span> Bài toán</h2>
+  <p>Sinh viên thường xem lại bài giảng ghi hình nhưng ít khi ôn có hệ thống: video dài, khó tìm lại đoạn quan trọng, còn tự soạn thẻ ôn tập thì tốn thời gian. Giảng viên muốn giao tài liệu ôn tập cho lớp nhưng không có thời gian soạn câu hỏi cho từng buổi.</p>
+  <p><b>Mục tiêu:</b> giảng viên chỉ cần tải lên một bài giảng (hoặc dán link YouTube, PDF, slide). Hệ thống tự chuyển lời nói thành văn bản, tóm tắt, sinh flashcard và câu trắc nghiệm, mỗi thẻ ghi rõ nằm ở phút/trang nào. Giảng viên duyệt và sửa trước khi giao cho lớp. Sinh viên ôn trên điện thoại theo thuật toán SM-2: thẻ nhớ tốt thì giãn lịch, thẻ hay quên thì gặp lại sớm.</p>
+  <table>
+    <tr><th style="width:24%">Người dùng</th><th>Việc chính</th></tr>
+    <tr><td><b>Giảng viên</b></td><td>Tạo lớp (có mã lớp), tải bài giảng, theo dõi tiến trình xử lý, sửa/xoá/thêm thẻ và câu hỏi, chọn số câu – độ khó – kiểu câu (lý thuyết, tính toán, đúng/sai), giao một bài cho nhiều lớp, xem thống kê câu lớp hay sai.</td></tr>
+    <tr><td><b>Sinh viên</b></td><td>Vào lớp bằng mã, đọc tóm tắt, lật thẻ (bấm vào mốc thời gian để mở đúng đoạn video), ôn theo lịch SM-2, làm trắc nghiệm, xuất thẻ sang Anki (<code>.apkg</code>, CSV).</td></tr>
+  </table>
+  <p class="small muted">Phạm vi: giao diện tiếng Việt, ưu tiên điện thoại (sinh viên chủ yếu dùng điện thoại), đạt mức WCAG AA cơ bản, tự host được bằng Docker.</p>
+</section>
+
+<!-- ===================== 2. Kiến trúc ===================== -->
+<section class="page-break">
+  <h2><span class="n">02</span> Kiến trúc</h2>
+  <p>Repo là một monorepo chia theo người phụ trách: <code>ai/speech</code>, <code>ai/llm</code>, <code>backend</code>, <code>frontend</code>, <code>deploy</code>. Các phần nói chuyện với nhau qua <b>hợp đồng OpenAPI</b> viết trước (<code>docs/openapi.json</code>), nên frontend và backend làm song song được.</p>
+
+  <figure class="keep">
+    <svg viewBox="0 0 700 250" width="100%" font-family="Be Vietnam Pro, sans-serif" font-size="11">
+      <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#121a2c"/></marker></defs>
+      <!-- browser -->
+      <rect x="4" y="96" width="104" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
+      <text x="56" y="120" text-anchor="middle" font-weight="700">Trình duyệt</text>
+      <text x="56" y="136" text-anchor="middle" fill="#6b7385" font-size="9.5">GV · SV (điện thoại)</text>
+      <!-- caddy -->
+      <rect x="140" y="96" width="92" height="56" rx="5" fill="#121a2c"/>
+      <text x="186" y="120" text-anchor="middle" font-weight="700" fill="#fff">Caddy</text>
+      <text x="186" y="136" text-anchor="middle" fill="#b9bfcc" font-size="9.5">HTTPS · 80/443</text>
+      <line x1="108" y1="124" x2="138" y2="124" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <!-- web -->
+      <rect x="266" y="20" width="132" height="56" rx="5" fill="#fff" stroke="#121a2c" stroke-width="1.4"/>
+      <text x="332" y="44" text-anchor="middle" font-weight="700">web · Next.js 15</text>
+      <text x="332" y="60" text-anchor="middle" fill="#6b7385" font-size="9.5">TypeScript · Tailwind</text>
+      <!-- api -->
+      <rect x="266" y="150" width="132" height="56" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
+      <text x="332" y="174" text-anchor="middle" font-weight="700">api · FastAPI</text>
+      <text x="332" y="190" text-anchor="middle" fill="#6b7385" font-size="9.5">JWT · SM-2 · export</text>
+      <path d="M232,112 C250,112 248,48 264,48" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <path d="M232,136 C250,136 248,178 264,178" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="232" y="200" fill="#c8102e" font-size="9" font-weight="600">/api/*</text>
+      <!-- db + redis -->
+      <rect x="436" y="150" width="96" height="56" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
+      <text x="484" y="174" text-anchor="middle" font-weight="700">PostgreSQL</text>
+      <text x="484" y="190" text-anchor="middle" fill="#6b7385" font-size="9.5">5 migration</text>
+      <rect x="436" y="20" width="96" height="56" rx="5" fill="#f3f4f6" stroke="#121a2c" stroke-width="1.2"/>
+      <text x="484" y="44" text-anchor="middle" font-weight="700">Redis</text>
+      <text x="484" y="60" text-anchor="middle" fill="#6b7385" font-size="9.5">hàng đợi RQ</text>
+      <line x1="398" y1="178" x2="434" y2="178" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <path d="M398,160 C420,160 416,60 434,60" fill="none" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="440" y="112" fill="#6b7385" font-size="9">enqueue ↑</text>
+      <!-- worker -->
+      <rect x="568" y="84" width="128" height="80" rx="5" fill="#fff" stroke="#c8102e" stroke-width="1.6"/>
+      <text x="632" y="106" text-anchor="middle" font-weight="700">worker · RQ</text>
+      <text x="632" y="122" text-anchor="middle" fill="#6b7385" font-size="9.5">ai/speech</text>
+      <text x="632" y="136" text-anchor="middle" fill="#6b7385" font-size="9.5">ai/llm</text>
+      <text x="632" y="152" text-anchor="middle" fill="#6b7385" font-size="9.5">ffmpeg · yt-dlp</text>
+      <line x1="532" y1="48" x2="584" y2="82" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <line x1="584" y1="166" x2="534" y2="184" stroke="#121a2c" stroke-width="1.3" marker-end="url(#a)"/>
+      <!-- external -->
+      <rect x="560" y="200" width="136" height="46" rx="5" fill="#fbe9ec" stroke="#c8102e" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="628" y="219" text-anchor="middle" font-weight="700" font-size="10">Groq (API ngoài)</text>
+      <text x="628" y="234" text-anchor="middle" fill="#3d4659" font-size="9">Whisper · gpt-oss-120b/20b</text>
+      <line x1="632" y1="164" x2="632" y2="198" stroke="#c8102e" stroke-width="1.3" marker-end="url(#a)"/>
+      <text x="4" y="236" fill="#6b7385" font-size="9">File tải lên nằm trên volume dùng chung giữa api và worker.</text>
+    </svg>
+    <figcaption>Hình 1. Các dịch vụ khi deploy (một VPS, <code>docker compose</code>). Chỉ Caddy mở cổng ra Internet.</figcaption>
+  </figure>
+
+  <h3>Luồng xử lý một bài giảng</h3>
+  <p>API lưu file (hoặc link), tạo bản ghi <code>Lecture</code> rồi đẩy job vào Redis và trả về ngay. Worker chạy job nền vì nhận dạng giọng nói có thể mất vài phút; frontend hỏi tiến độ mỗi 2 giây (<code>GET /lectures/{id}</code>).</p>
+  <div class="pipeline keep">
+    <div><span class="pct">0%</span><b>queued</b>vào hàng đợi</div>
+    <div><span class="pct">10%</span><b>transcribing</b>phụ đề YouTube → hoặc Whisper → hoặc trích chữ PDF/PPTX</div>
+    <div><span class="pct">50%</span><b>summarizing</b>tóm tắt map-reduce</div>
+    <div><span class="pct">75–85%</span><b>generating</b>flashcard, rồi trắc nghiệm theo lựa chọn của GV</div>
+    <div><span class="pct">100%</span><b>ready</b>GV duyệt, giao cho lớp</div>
+  </div>
+
+  <h3>Lựa chọn công nghệ và lý do</h3>
+  <table>
+    <tr><th style="width:22%">Phần</th><th style="width:30%">Chọn</th><th>Lý do</th></tr>
+    <tr><td>Hàng đợi nền</td><td>RQ + Redis</td><td>Chỉ cần một hàng đợi và một loại job; RQ ít cấu hình hơn Celery nhiều. Job timeout 3 giờ cho bài giảng dài.</td></tr>
+    <tr><td>Lời giảng</td><td>Phụ đề YouTube trước, Whisper sau</td><td>Video có phụ đề (vi rồi en) thì dùng luôn: chính xác, có timestamp, không tốn API. Không có thì tải audio, nén Opus 16 kbps (~7 MB/giờ) và gửi Whisper <code>large-v3</code> trên Groq; có sẵn tuỳ chọn chạy PhoWhisper/Whisper trên GPU riêng.</td></tr>
+    <tr><td>LLM</td><td>Client OpenAI-compatible tự viết, không LangChain</td><td>Đổi nhà cung cấp chỉ bằng biến môi trường (Groq, OpenAI, Gemini, Ollama tự host). Tự động chuyển model dự phòng khi hết hạn mức ngày.</td></tr>
+    <tr><td>Lưu trữ</td><td>PostgreSQL + volume Docker</td><td>Đủ cho quy mô một trường, tự host được; SQLite dùng cho test và chạy dev không cần Docker.</td></tr>
+    <tr><td>Frontend</td><td>Next.js 15 App Router, Tailwind v4</td><td>Giao diện “lịch blốc” (giấy trắng, mực xanh đen, đỏ lịch) tối ưu cho điện thoại; tôn trọng <i>prefers-reduced-motion</i>.</td></tr>
+    <tr><td>Deploy</td><td>Docker Compose + Caddy</td><td>Một lệnh dựng cả hệ thống; Caddy tự cấp và gia hạn HTTPS; web và API chung tên miền nên không phát sinh CORS.</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 3. AI ===================== -->
+<section>
+  <h2><span class="n">03</span> Xử lý AI</h2>
+  <div class="grid2">
+    <div>
+      <h3 style="margin-top:0">Speech <span class="muted small">(ai/speech)</span></h3>
+      <ul>
+        <li><b>Phụ đề YouTube</b> (<code>captions.py</code>): ưu tiên phụ đề tiếng Việt do người làm, rồi tự động, rồi tiếng Anh; gộp thành đoạn ~20 giây. Lỗi 429 ở một track thì thử track tiếp theo.</li>
+        <li><b>Audio</b>: <code>yt-dlp</code> + <code>ffmpeg</code> chuyển về 16 kHz mono; engine <code>api</code> gọi <code>/audio/transcriptions</code> (verbose_json để lấy timestamp từng đoạn).</li>
+        <li><b>Tài liệu</b>: PDF/PPTX trích chữ theo trang; thẻ ghi “Trang N” thay cho mốc thời gian.</li>
+        <li><b>WER</b> (<code>wer.py</code>): tỉ lệ lỗi từ bằng khoảng cách Levenshtein trên từ, dùng để so sánh các engine.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">LLM <span class="muted small">(ai/llm)</span></h3>
+      <ul>
+        <li><b>Làm sạch</b> từ đệm (“ờ”, “à”…) và <b>chia đoạn</b> ~4.000 ký tự, giữ mốc thời gian đầu mỗi đoạn.</li>
+        <li><b>Tóm tắt</b> map-reduce: tóm từng đoạn rồi gộp; bài ngắn gọi một lần.</li>
+        <li><b>Flashcard</b> ở chế độ JSON, kiểm tra từng thẻ bằng Pydantic (thẻ lỗi bị loại, không làm hỏng cả đoạn), lọc trùng bằng độ giống chuỗi. JSON hỏng thì hỏi lại một lần.</li>
+        <li><b>Trắc nghiệm</b>: lập “kế hoạch” số câu theo (kiểu, độ khó), phân đều cho các đoạn; một lượt gọi riêng bắt model <b>giải lại mà không thấy đáp án</b> (theo lô 10 câu), câu nào kết quả khác đáp án gốc thì loại; xáo phương án để đáp án không dồn vào A.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout small">Ràng buộc gói miễn phí Groq (8.000 token/phút, 200.000 token/ngày mỗi model) được xử lý trong code: giới hạn <code>max_tokens</code>, <code>reasoning_effort=low</code>, chờ theo <code>retry-after</code> khi quá hạn mức phút, chuyển <code>gpt-oss-120b</code> → <code>gpt-oss-20b</code> khi hết hạn mức ngày, và báo lỗi tiếng Việt rõ ràng khi mọi model đều hết. Tạo trắc nghiệm thất bại không làm hỏng bài giảng: tóm tắt và flashcard vẫn được giữ.</div>
+</section>
+
+<!-- ===================== 4. API ===================== -->
+<section>
+  <h2><span class="n">04</span> API</h2>
+  <p>Viết hợp đồng trước: schema Pydantic trong <code>backend/app/schemas.py</code> sinh ra <code>docs/openapi.json</code>; CI chạy <code>export_openapi --check</code> và báo lỗi nếu file cũ hơn code. Xác thực bằng JWT (HS256, hạn 7 ngày, mật khẩu băm PBKDF2-SHA256 200.000 vòng). Sinh viên chỉ thấy bài đã được giao cho lớp mình; câu trắc nghiệm trả về cho sinh viên không kèm đáp án cho đến khi nộp. Swagger có tại <code>/docs</code> khi chạy local.</p>
+  <table>
+    <tr><th style="width:10%"></th><th style="width:38%">Endpoint</th><th>Chức năng</th></tr>
+    <tr><td><span class="method POST">POST</span></td><td class="mono">/auth/register · /auth/login</td><td>Đăng ký (GV/SV), đăng nhập, nhận JWT. Có thể khoá đăng ký GV trên server công khai.</td></tr>
+    <tr><td><span class="method POST">POST</span></td><td class="mono">/classes · /classes/join</td><td>GV tạo lớp (sinh mã 6 ký tự); SV vào lớp bằng mã.</td></tr>
+    <tr><td><span class="method POST">POST</span></td><td class="mono">/classes/{id}/lectures</td><td>Tải file hoặc link YouTube kèm tuỳ chọn trắc nghiệm (số câu, độ khó, kiểu câu); đẩy job vào hàng đợi.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/lectures/{id}</td><td>Trạng thái + tiến độ 0–100 (frontend poll).</td></tr>
+    <tr><td><span class="method PUT">PUT</span></td><td class="mono">/lectures/{id}/assignments</td><td>Giao một bài cho nhiều lớp (dùng chung bộ thẻ); bỏ lớp nào là thu hồi khỏi lớp đó.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/lectures/{id}/summary · /transcript · /media</td><td>Tóm tắt (markdown), lời giảng có timestamp, file gốc để phát lại.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/lectures/{id}/flashcards · /quiz</td><td>Danh sách thẻ, câu hỏi. <span class="method PUT">PUT</span> <span class="method DELETE">DELETE</span> <span class="mono">/flashcards/{id}</span>, <span class="mono">/quiz/{id}</span> để GV sửa, xoá.</td></tr>
+    <tr><td><span class="method POST">POST</span></td><td class="mono">/lectures/{id}/quiz/generate</td><td>Sinh thêm (hoặc thay toàn bộ) câu hỏi theo lựa chọn mới. Hết hạn mức AI trả 429 kèm thông báo.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/review/due</td><td>Thẻ đến hạn ôn của sinh viên (theo lớp hoặc tất cả).</td></tr>
+    <tr><td><span class="method POST">POST</span></td><td class="mono">/review · /quiz/{id}/answer</td><td>Chấm điểm nhớ 0–5 cho thẻ (SM-2 tính lịch mới); nộp đáp án trắc nghiệm, nhận đáp án đúng + giải thích.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/classes/{id}/stats</td><td>Câu lớp hay sai nhất, số lượt ôn, độ chính xác và số thẻ đến hạn của từng SV.</td></tr>
+    <tr><td><span class="method GET">GET</span></td><td class="mono">/lectures/{id}/export.apkg · .csv</td><td>Xuất bộ thẻ sang Anki; GUID cố định nên nhập lại sẽ cập nhật thay vì nhân đôi thẻ.</td></tr>
+  </table>
+  <p class="small muted">Tổng cộng 30 endpoint; danh sách đầy đủ trong <code>docs/openapi.json</code>.</p>
+</section>
+
+<!-- ===================== 5. Dữ liệu ===================== -->
+<section>
+  <h2><span class="n">05</span> Dữ liệu</h2>
+  <p>SQLAlchemy 2.0, schema quản lý bằng Alembic (5 migration, chạy tự động khi API khởi động). CI chạy <code>alembic check</code> để phát hiện trường hợp sửa model mà quên tạo migration.</p>
+  <table>
+    <tr><th style="width:20%">Bảng</th><th style="width:44%">Cột chính</th><th>Ghi chú</th></tr>
+    <tr><td class="mono">users</td><td>email (unique), name, password_hash, role</td><td>role = teacher | student</td></tr>
+    <tr><td class="mono">classes</td><td>name, code (unique), teacher_id</td><td>mã lớp để SV tham gia</td></tr>
+    <tr><td class="mono">enrollments</td><td>(user_id, class_id) khoá chính kép</td><td>SV thuộc lớp nào</td></tr>
+    <tr><td class="mono">lectures</td><td>class_id, title, source_type, source_url, file_path, status, progress, error, mock</td><td>class_id là lớp tải lên; <code>mock</code> đánh dấu dữ liệu mẫu để UI không nhận nhầm là nội dung thật</td></tr>
+    <tr><td class="mono">assignments</td><td>(lecture_id, class_id), assigned_at</td><td>một bài giao cho nhiều lớp</td></tr>
+    <tr><td class="mono">transcripts · segments</td><td>engine, text · idx, start, end, text</td><td>engine ghi rõ nguồn: captions:vi, api, document…</td></tr>
+    <tr><td class="mono">summaries</td><td>lecture_id (unique), content</td><td>markdown</td></tr>
+    <tr><td class="mono">flashcards</td><td>front, back, source_start, edited</td><td>source_start = giây (hoặc số trang)</td></tr>
+    <tr><td class="mono">quiz_questions</td><td>question, options (JSON), answer_index, explanation, difficulty, kind, edited</td><td>kind = theory | calculation | true_false</td></tr>
+    <tr><td class="mono">review_logs</td><td>user_id, flashcard_id, quality, ease, interval, repetitions, due_at</td><td>mỗi lần ôn một dòng; dòng mới nhất giữ trạng thái SM-2</td></tr>
+    <tr><td class="mono">quiz_attempts</td><td>user_id, question_id, choice, correct</td><td>nguồn cho thống kê câu hay sai</td></tr>
+  </table>
+  <p><b>SM-2</b> (<code>sm2.py</code>): điểm nhớ q ∈ [0, 5]. Nếu q &lt; 3, thẻ quay về khoảng 1 ngày. Ngược lại khoảng ôn tăng 1 → 6 → round(khoảng trước × EF) ngày, với EF ← EF + 0,1 − (5−q)(0,08 + (5−q)·0,02), tối thiểu 1,3. Lưu toàn bộ lịch sử thay vì chỉ trạng thái cuối, nên thống kê và đổi thuật toán sau này không mất dữ liệu.</p>
+</section>
+
+<!-- ===================== 6. Giao diện ===================== -->
+<section>
+  <h2><span class="n">06</span> Giao diện</h2>
+  <div class="shots">
+    <figure style="margin:0">
+      <img src="img/teacher-lecture.png" alt="">
+      <figcaption>Hình 2. Trang bài giảng của giảng viên: thẻ kèm mốc thời gian, sửa/xoá từng thẻ, trạng thái “đã giao cho 2 lớp”. (Ảnh chụp với dữ liệu mẫu, có nhãn “Dữ liệu mẫu”.)</figcaption>
+    </figure>
+    <figure style="margin:0">
+      <img src="img/assign-phone.png" alt="">
+      <figcaption>Hình 3. Giao bài cho nhiều lớp trên điện thoại.</figcaption>
+    </figure>
+  </div>
+  <p class="small" style="margin-top:8pt">Sinh viên lật thẻ bằng cách chạm; sau khi tự chấm, “tờ lịch” xé đi để lộ thẻ tiếp theo. Mọi chuyển động có phiên bản nhẹ khi người dùng bật giảm chuyển động. Tiến trình xử lý hiển thị theo từng bước của pipeline thay vì một vòng quay vô nghĩa.</p>
+</section>
+
+<!-- ===================== 7. Kiểm thử ===================== -->
+<section>
+  <h2><span class="n">07</span> Kiểm thử</h2>
+  <div class="stats">
+    <div class="stat"><b>18</b><span>test tự động (pytest), đều pass</span></div>
+    <div class="stat"><b>2</b><span>job CI trên GitHub Actions mỗi lần push</span></div>
+    <div class="stat"><b>84 s</b><span>bài YouTube thật → 16 thẻ + 5 câu</span></div>
+    <div class="stat"><b>8 s</b><span>audio 40 s tải lên → Whisper → 6 thẻ</span></div>
+  </div>
+  <h3>Tự động</h3>
+  <table>
+    <tr><th style="width:30%">Nhóm</th><th>Nội dung kiểm tra</th></tr>
+    <tr><td>AI (11 test)</td><td>WER; làm sạch từ đệm không cắt nhầm từ thật; validate đáp án trắc nghiệm; chuẩn hoá câu đúng/sai mà vẫn giữ đáp án; lọc trùng; lập kế hoạch và lấp chỗ thiếu câu hỏi; xáo phương án vẫn giữ đáp án đúng; chuyển model dự phòng khi hết hạn mức ngày; hỏi lại khi JSON hỏng; engine Whisper qua API (giả lập HTTP).</td></tr>
+    <tr><td>Backend (7 test)</td><td>SM-2; luồng đầy đủ GV tạo lớp → SV vào lớp → tải bài → bài chưa giao bị ẩn → sửa thẻ → giao → SV ôn và làm trắc nghiệm → thống kê → xuất CSV/.apkg; tải slide PPTX lấy đúng chữ theo trang; sinh trắc nghiệm theo tuỳ chọn và từ chối tuỳ chọn sai; giao một bài cho 2 lớp, không cho giao vào lớp của GV khác, thu hồi; khoá đăng ký GV. Test chạy migration Alembic thật trên SQLite.</td></tr>
+    <tr><td>CI</td><td><code>ruff</code> (lint + format), <code>pytest</code>, hợp đồng OpenAPI khớp code, model khớp migration; frontend: ESLint, <code>tsc --noEmit</code>, <code>next build</code>.</td></tr>
+  </table>
+  <h3>Thủ công / tích hợp</h3>
+  <ul>
+    <li><b>Dữ liệu thật:</b> video lịch sử tiếng Việt <span class="mono">AMqpBURO7ds</span> (5 câu, độ khó trộn, đủ 3 kiểu): sẵn sàng sau 84 giây với 16 flashcard và 5 câu hỏi đúng nội dung. Vì video không có nội dung tính toán, hệ thống tự thay câu tính toán bằng câu lý thuyết như thiết kế.</li>
+    <li><b>Stack production chạy tại máy</b> (<code>https://localhost</code>, Caddy tự ký): chỉ cổng 80/443 mở ra ngoài; HTTP chuyển sang HTTPS (308); có header HSTS, nosniff; API từ chối khởi động với <code>JWT_SECRET</code> yếu; tải audio qua <code>/api</code> → Whisper nhận dạng 40 giây audio trong 1,4 giây → Groq sinh 6 thẻ; script sao lưu tạo được bản dump database và file nén thư mục upload.</li>
+    <li><b>Giao diện:</b> chụp màn hình bằng Playwright ở 1440 px và 390 px cho từng tính năng mới; sửa các lỗi review phát hiện (vòng focus sai màu, thẻ đầu không xé, tiêu đề bị cắt).</li>
+  </ul>
+</section>
+
+<!-- ===================== 8. Hạn chế ===================== -->
+<section>
+  <h2><span class="n">08</span> Hạn chế và hướng phát triển</h2>
+  <table>
+    <tr><th style="width:36%">Hạn chế</th><th>Hướng xử lý</th></tr>
+    <tr><td>Chưa đo WER trên một bộ dữ liệu bài giảng có nhãn chuẩn; mới có công cụ đo.</td><td>Ghi âm/gán nhãn 10–20 phút bài giảng thật, so sánh phụ đề YouTube, Whisper large-v3 và PhoWhisper.</td></tr>
+    <tr><td>Câu trắc nghiệm được kiểm tra bằng chính một LLM; vẫn có thể sai hoặc mơ hồ.</td><td>Giảng viên luôn duyệt trước khi giao; thu thập tỉ lệ câu bị sửa/xoá làm chỉ số chất lượng.</td></tr>
+    <tr><td>Gói miễn phí Groq chỉ đủ khoảng 5–6 bài giảng/ngày/model.</td><td>Nâng gói trả phí hoặc trỏ sang LLM tự host (Ollama/vLLM) chỉ bằng biến môi trường.</td></tr>
+    <tr><td>YouTube có thể chặn IP của VPS, khiến bài dán link bị lỗi.</td><td>Tải file trực tiếp; hoặc cấu hình cookie/proxy cho yt-dlp.</td></tr>
+    <tr><td>Âm thanh tối đa ~3 giờ/bài (25 MB sau nén) với Whisper qua API.</td><td>Cắt audio thành nhiều đoạn rồi ghép timestamp.</td></tr>
+    <tr><td>Chưa có quên mật khẩu, xác thực email, giới hạn số lần đăng nhập.</td><td>Thêm khi mở cho nhiều trường; hiện có khoá đăng ký giảng viên.</td></tr>
+    <tr><td>Frontend chưa có test end-to-end tự động; mới kiểm bằng ảnh chụp Playwright.</td><td>Viết Playwright test cho 3 luồng chính và chạy trong CI.</td></tr>
+    <tr><td>Một VPS, không dự phòng; backup nằm cùng máy.</td><td>Đẩy backup ra object storage; tách database sang dịch vụ có sẵn sao lưu.</td></tr>
+  </table>
+</section>
+
+<!-- ===================== 9. Phân công ===================== -->
+<section class="keep">
+  <h2><span class="n">09</span> Bảng phân công</h2>
+  <table>
+    <tr><th style="width:24%">Thành viên</th><th>Nhiệm vụ và sản phẩm</th><th style="width:14%; text-align:right">Đóng góp</th></tr>
+    <tr><td><b>Nguyễn Thái Sơn</b><br><span class="muted small">Speech</span></td><td>Whisper/PhoWhisper, tải audio từ YouTube (yt-dlp), đo độ chính xác nhận dạng (WER). <span class="muted">Sản phẩm: <code>ai/speech/</code> (transcribe, captions, wer), engine Whisper qua API, nén Opus.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Thái Sơn}}%</td></tr>
+    <tr><td><b>Lương Hoàng Phúc</b><br><span class="muted small">LLM</span></td><td>Chunking, prompt tóm tắt, sinh flashcard, kiểm tra JSON đầu ra, đánh giá chất lượng. <span class="muted">Sản phẩm: <code>ai/llm/</code> (clean, generate, schemas), sinh trắc nghiệm theo kế hoạch + bước giải lại, xử lý hạn mức.</span></td><td style="text-align:right" class="mono">{{c:Lương Hoàng Phúc}}%</td></tr>
+    <tr><td><b>Nguyễn Công Phước</b><br><span class="muted small">Backend</span></td><td>FastAPI, hàng đợi xử lý nền (RQ, vì chạy speech-to-text mất vài phút), database lưu bài giảng và thẻ, thuật toán spaced repetition (SM-2). <span class="muted">Sản phẩm: <code>backend/</code>, migration, hợp đồng OpenAPI, giao bài nhiều lớp, xuất Anki.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Công Phước}}%</td></tr>
+    <tr><td><b>Nguyễn Hữu Lan</b><br><span class="muted small">Frontend + Deploy</span></td><td>Upload file, thanh tiến trình, trang tóm tắt, giao diện lật thẻ, deploy. <span class="muted">Sản phẩm: <code>frontend/</code>, Docker, Caddy, CI, sao lưu.</span></td><td style="text-align:right" class="mono">{{c:Nguyễn Hữu Lan}}%</td></tr>
+    <tr class="total"><td colspan="2">Tổng</td><td style="text-align:right" class="mono">{{c_total}}%</td></tr>
+  </table>
+
+  <h3>Xác nhận của nhóm</h3>
+  <p class="small muted">Các thành viên đã đọc báo cáo và đồng ý với bảng phân công, tỉ lệ đóng góp ở trên.</p>
+  <table class="sign">
+    <tr><th>Nguyễn Thái Sơn</th><th>Lương Hoàng Phúc</th><th>Nguyễn Công Phước</th><th>Nguyễn Hữu Lan</th></tr>
+    <tr><td><div class="line"></div></td><td><div class="line"></div></td><td><div class="line"></div></td><td><div class="line"></div></td></tr>
+  </table>
+</section>
+
+</body>
+</html>

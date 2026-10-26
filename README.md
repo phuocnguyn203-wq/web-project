@@ -5,12 +5,13 @@ Biến bài giảng tiếng Việt (video, audio, YouTube) thành tóm tắt, fl
 ## Chạy nhanh (Docker)
 
 ```bash
-cp .env.example .env
 docker compose up --build
 ```
 
 - Web: http://localhost:3000
 - API + Swagger: http://localhost:8000/docs
+
+Không cần `.env` để chạy thử. Muốn dùng AI thật thì `cp .env.example .env`, điền key (xem mục **Bật model thật**), rồi chạy lại lệnh trên.
 
 Bài giảng có thể là video/audio, link YouTube, hoặc **PDF/PPTX** (trích chữ theo trang; thẻ ghi số trang thay cho mốc thời gian). Xuất thẻ sang Anki dạng `.apkg` hoặc CSV.
 
